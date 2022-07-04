@@ -1,0 +1,91 @@
+########################## Harmonization of Kalra et al and Meijer et al Summary Statistics ########################################
+                                  ########## Performed in Linux ##############
+
+#A) Kalra data set
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+DATA=/home/projects/cio/summary_stats/hearing_loss
+OUTPUT=/home/projects/cio/PRS_collab/kalra
+
+mkdir -p $OUTPUT
+
+python3.8 $GWAS_TOOLS/gwas_parsing.py \
+        -gwas_file $DATA/Kalra_2020_mtag.txt.gz \
+        -fill_from_snp_info $REF/ucsc/snp150_hg19_parsed.txt.gz \
+	-liftover $REF/liftover/hg19ToHg38.over.chain.gz \
+        -snp_reference_metadata $REF/gtex_v8_eur_filtered_maf0.01_monoallelic_variants.txt.gz METADATA \
+        -output_column_map snpid variant_id \
+	-output_column_map a1 effect_allele \
+        -output_column_map a2 non_effect_allele \
+        -output_column_map mtag_beta effect_size \
+        -output_column_map mtag_pval pvalue \
+        -output_column_map mtag_se standard_error \
+        -output_column_map mtag_z zscore \
+        -output_column_map n sample_size \
+        -output_order variant_id panel_variant_id chromosome position effect_allele non_effect_allele frequency pvalue zscore effect_size standard_error sample_size n_cases \
+        -output $OUTPUT/kalra_harmonized
+        
+#Genome build then changed to the previous build (GRCh37)#  
+#/bin/bash
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+DATA=/home/projects/cio/PRS_collab/kalra
+OUTPUT=/home/projects/cio/PRS_collab/kalra
+
+
+python3.8 $GWAS_TOOLS/gwas_parsing.py \
+    -gwas_file $DATA/kalra_harmonized \
+    -liftover $REF/liftover/hg38ToHg19.over.chain.gz \
+    -output $OUTPUT/kalra_liftdown_to_hg19.txt
+    
+    
+    
+#B) Meijer data set 
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+DATA=/home/projects/summer_students_2021/cio_vaibhav/results
+OUTPUT=/home/projects/cio/PRS_collab/meijer
+
+mkdir -p $OUTPUT
+
+python3.8 $GWAS_TOOLS/gwas_parsing.py \
+        -gwas_file $DATA/meijer_update.txt.gz \
+	-liftover $REF/liftover/hg19ToHg38.over.chain.gz \
+        -snp_reference_metadata $REF/gtex_v8_eur_filtered_maf0.01_monoallelic_variants.txt.gz METADATA \
+        -output_column_map markername variant_id \
+        -output_column_map other_allele non_effect_allele \
+        -output_column_map effect_allele effect_allele \
+        -output_column_map odds_ratio or \
+        -output_column_map p_value pvalue \
+        -output_column_map chromosome chromosome \
+        --chromosome_format \
+        --enforce_numeric_columns \
+        --force_special_handling \
+        -input_pvalue_fix 0 \
+        -output_column_map base_pair_location position \
+        -output_column_map effect_allele_frequency frequency \
+        --insert_value sample_size 390 --insert_value n_cases 168 \
+        -output_order variant_id panel_variant_id chromosome position effect_allele non_effect_allele frequency pvalue zscore or sample_size n_cases effect_size standard_error \
+        -output $OUTPUT/meijer_harmonized
+        
+        
+#Genome build then changed to the previous build (GRCh37)# 
+#/bin/bash
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+DATA=/home/projects/cio/PRS_collab/meijer
+OUTPUT=/home/projects/cio/PRS_collab/meijer
+
+
+python3.8 $GWAS_TOOLS/gwas_parsing.py \
+    -gwas_file $DATA/meijer_harmonized \
+    -liftover $REF/liftover/hg38ToHg19.over.chain.gz \
+    -output $OUTPUT/meijer_liftdown_to_hg19.txt
