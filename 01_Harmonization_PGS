@@ -2,6 +2,7 @@
                                   ########## Performed in Linux ##############
 
 #A) Kalra data set
+#https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009025
 #!/bin/bash
 # Here you could write HPC directives if running on a compute cluster
 
@@ -44,7 +45,8 @@ python3.8 $GWAS_TOOLS/gwas_parsing.py \
     
     
     
-#B) Meijer data set 
+#B) Meijer data set
+#https://www.nature.com/articles/s41698-021-00178-z
 #!/bin/bash
 # Here you could write HPC directives if running on a compute cluster
 
