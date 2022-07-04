@@ -1,6 +1,6 @@
-################################ Testing Polygenic Scores in ReACt ##############################################
-##Testing against pediatric cisplatin-induced ototoxicity cohort (Meijer et al)
-##Also testing a previously validated hearing loss polygenic score that was deposited in the PGS Catalogue (Cherny et al)
+###################################################### Testing Polygenic Scores in ReACt ##############################################
+##########Testing against pediatric cisplatin-induced ototoxicity cohort (Meijer et al)(https://www.nature.com/articles/s41698-021-00178-z)
+###Also testing a previously validated hearing loss polygenic score deposited in the PGS Catalogue (Cherny et al)(https://www.pgscatalog.org/publication/PGP000165/)
 
 A) Testing four pharmacogenomic refined scores based on Kalra data against Meijer data
 
@@ -70,6 +70,7 @@ write.table(meijer_final, file="/home/projects/cio/PRS_collab/meijer/React/meije
 
 
 2) Running ReACt analyses in Linux
+#https://github.com/Paschou-Lab/ReAct#Group-PRS
 
 (i)General hearing loss genes (unfiltered)
 echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
