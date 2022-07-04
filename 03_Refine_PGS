@@ -1,0 +1,288 @@
+################### Performing Gene-based Filtering to Increase Relevance to Cisplatin-Induced Ototoxicity (done in RStudio) ########################
+
+##############Four filters:(i) General hearing loss genes (i.e. no filters applied to SBayesR output)
+              (ii) Genes expressed in the inner and outer hair cells of the inner ear (using gEAR database)
+              (iii) Genes expressed in the general inner ear (using gEAR database)
+              (iv) Genes expressed in the inner and outer hair cells of the inner ear and has a drug-gene relationship with cisplatin
+              (using the Cancer Cell Line Encyclopedia and Drug Sensitivity in Cancer databases) 
+              
+(i) General hearing loss genes -> no filtering needed
+ 
+(ii & iii) Increase relevance of genes to hearing using gEAR database (p7 mouse inner ear data)
+
+install.packages("tidyverse")
+library(tidyverse)
+ 
+#Reading in gEAR data that gives the highest expression for genes in inner ear cell types 
+#https://umgear.org/p?s=7e32dd02 (download request provides a gear_genes_expression folder in which the gene_data_max_mean.csv is located)
+gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T) 
+
+#Merging with annotated unfiltered kalra data
+names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene"
+gear_prs<-merge(merged_react_kalra,gear_genes, by="gene")
+
+a)Filtering for inner and outer hair cells of the inner ear
+gear_prs_innerandoutercells<-filter(gear_prs, cell_type=="Hair_Cells") 
+distinct_innerandoutercells<-gear_prs_innerandoutercells %>% distinct(Name, .keep_all = TRUE) #removing duplicated rsIDs -> 235,609 SNPs
+
+b) Filtering for general inner ear cells
+gear_prs_general_innerear<-filter(gear_prs, cell_type !="Hair_Cells")
+distinct_general_innerear<-gear_prs_general_innerear %>% distinct(Name, .keep_all = TRUE) #removing duplicated rsIds #735,758 SNPs
+
+(iv) Increase relevance of genes to hearing and cisplatin cytotoxicity
+
+install.packages("tidyverse")
+library(tidyverse)
+ 
+#Reading in the cisplatin cytotoxicity data -> see how merge_with_genes.csv was made at the bottom of the script
+cyto <-read.csv("/home/projects/summer_students_2021/cio_vaibhav/Mackenzie/merge_with_genes.csv", header=TRUE) %>%
+  dplyr::rename(gene=gene_name)
+
+#Merging with annotation unfiltered kalra data 
+prs_cyto<-merge(merged_react_kalra,cyto,by="gene")
+
+#Finding genes that have at least one tissue that is p<0.05 
+prs_cyto_tissue<-prs_cyto %>% filter_at(vars(p.value_breast,p.value_lung_SCLC,p.value_lung,p.value_lung_NSCLC,p.value_bone,p.value_aero_dig_tract,p.value_digestive_system,
+                                             p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
+                                             p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<=0.05))
+
+
+#Combine with gEAR data, remove duplicated SNPs and filter for inner and outer hair cells
+merged_gear_cyto<-merge(gear_prs,prs_cyto_tissue, by="Name") 
+distinct_gear_cyto<-merged_gear_cyto%>% distinct(Name, .keep_all=TRUE) #735,261
+merged_gear_cyto_innerandoutercells<-filter(distinct_gear_cyto, cell_type=="Hair_Cells") #176,379
+
+
+
+###### Creating the cytotoxicity data file used in filter (iv) (in RStudio) ############
+
+library(data.table)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(tibble)
+library(ggplot2)
+library(purrr)
+library(xlsx)
+library(ggpubr)
+library('biomaRt')
+library(plyr)
+
+#https://www.cancerrxgene.org/downloads #Genomics of drug sensitivity in cancer database
+#Read more here: A landscape of pharmacogenomic interactions in cancer [Iorio et al, Cell 2016]. 
+
+#Bulk analyses: Load RMA normalised gene expression data (gene expression after treatment with specific drugs) for all cell lines (column names)
+#Download gene expression data
+#wget ftp://ftp.sanger.ac.uk/pub/project/cancerrxgene/releases/current_release/sanger1018_brainarray_ensemblgene_rma.txt.gz"
+
+#read data
+cancer_rx_rma_data <- fread("sanger1018_brainarray_ensemblgene_rma.txt", header=T)
+
+#change format of files
+cancer_rx_rma_data$ensembl_gene <- as.factor(cancer_rx_rma_data$ensembl_gene)
+cancer_rx_rma_data <- melt(cancer_rx_rma_data, id.vars=c("ensembl_gene"))
+
+#Load downloaded log(IC50) and AUC values which provides info on cisplatin-induced cytotoxicity across cell lines
+#wget ftp://ftp.sanger.ac.uk/pub/project/cancerrxgene/releases/current_release/v17.3_fitted_dose_response.xlsx
+
+#Load in data
+ic50 <- read_xlsx("v17.3_fitted_dose_response.xlsx")
+
+#change format
+ic50$COSMIC_ID <- as.factor(ic50$COSMIC_ID)
+
+#Extract only information relatingg to cisplatin
+ic50_cis <- ic50[ic50$DRUG_NAME=="Cisplatin",]
+
+#Merge gene expression and IC50 data
+cancer_rx_rma_cis <- merge(cancer_rx_rma_data, ic50_cis, 
+                           by.x="variable", by.y="COSMIC_ID")
+
+# Read in downloaded cell line details
+# wget ftp://ftp.sanger.ac.uk/pub/project/cancerrxgene/releases/current_release/Cell_Lines_Details.xlsx
+
+#load data in
+cells <- read_xlsx("Cell_Lines_Details.xlsx")
+#format data
+colnames(cells) <- gsub("\n", "_", colnames(cells))
+colnames(cells) <- gsub("\r", "", colnames(cells))
+colnames(cells) <- gsub("\\(", "", colnames(cells))
+colnames(cells) <- gsub("\\)", "", colnames(cells))
+colnames(cells) <- gsub(" ", "_", colnames(cells))
+colnames(cells) <- gsub("__", "_", colnames(cells))
+cells$COSMIC_identifier <- as.factor(cells$COSMIC_identifier)
+
+#Check https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/tcga-study-abbreviations to find out which cancers the identifiers correspond to
+
+#Merge cell data with expression and IC50 data
+cancer_rx_rma_cis_cells <- merge(cancer_rx_rma_cis, cells, 
+                                 by.x="variable", by.y="COSMIC_identifier")
+
+#Remove outliers for IC50 data
+extreme.threshold.upper_cells <- IQR(cancer_rx_rma_cis_cells$LN_IC50)*3 + quantile(cancer_rx_rma_cis_cells$LN_IC50)[4]
+extreme.threshold.lower_cells <- quantile(cancer_rx_rma_cis_cells$LN_IC50)[2] - IQR(cancer_rx_rma_cis_cells$LN_IC50)*3
+extreme.threshold.upper.gene_cells <- IQR(cancer_rx_rma_cis_cells$value)*3 + quantile(cancer_rx_rma_cis_cells$value)[4]
+extreme.threshold.lower.gene_cells <- quantile(cancer_rx_rma_cis_cells$value)[2] - IQR(cancer_rx_rma_cis_cells$value)*3
+cancer_rx_rma_cis_gene_cells <- cancer_rx_rma_cis_cells %>%
+  filter(LN_IC50>extreme.threshold.lower_cells, LN_IC50<extreme.threshold.upper_cells) %>%
+  filter(value>extreme.threshold.lower.gene_cells, value<extreme.threshold.upper.gene_cells)
+
+#Keep only gene IDs, IC50 values and gene expression values
+cancer_rx_rma_cis_cells <- cancer_rx_rma_cis_cells %>% select(ensembl_gene, LN_IC50, value)
+
+#Rename columns
+colnames(cancer_rx_rma_cis_cells) <- c("ensembl_gene", "LN_IC50", "gene_expression")
+
+#Perform multiple simple regressionslooking at relationship between gene expression across cells vs cisplatin IC50 across cells for each gene seperately
+cis_gene_expression_cytotoxicity <- cancer_rx_rma_cis_cells %>%
+  nest(data = -ensembl_gene) %>% 
+  mutate(
+    fit = map(data, ~ lm(LN_IC50 ~ gene_expression, data = .x)),
+    tidied = map(fit, tidy)
+  ) %>% 
+  unnest(tidied)
+
+#Keep only relevant rows
+cis_gene_expression_cytotoxicity <- subset(cis_gene_expression_cytotoxicity, term == "gene_expression")
+
+#Check normality of IC50 data
+cis_gene_expression_IC50_data = cis_gene_expression_cytotoxicity[[2]][[1]]
+shapiro.test(cis_gene_expression_IC50_data$LN_IC50)
+
+#Double check with q-q plot
+qqnorm(cis_gene_expression_IC50_data$LN_IC50)
+
+#If needed, Check with ggdensity plot
+ggdensity(cis_gene_expression_IC50_data, x = "LN_IC50", fill = "lightgray", title = "IC50-values") +
+  scale_x_continuous(limits = c(-2, 7)) +
+  stat_overlay_normal_density(color = "red", linetype = "dashed")
+
+#Transform data if not normally distributed (e.g. log2) 
+#Can transform data by cube-root, square-root and log2 depending on skewness. An example command is given below.
+#cubert_IC50 <- cis_gene_expression_IC50_data$LN_IC50^(1/3)
+#To save transformed data
+#cancer_rx_rma_cis_cells$cube_root ='^'(cancer_rx_rma_cis_cells$LN_IC50,1/3)
+#cancer_rx_rma_cis_cells <- select(cancer_rx_rma_cis_cells, ensembl_gene, cube_root, gene_expression)
+
+#Filter for significant results (p-value < 0.05)
+cis_gene_expression_cytotoxicity_significant <- filter(cis_gene_expression_cytotoxicity, p.value < 0.05)
+
+#Save the file with the appropriate columns (Needed for saving data in xls format)
+cis_gene_expression_cytotoxicity_significant_pvalue <- select(cis_gene_expression_cytotoxicity_significant, ensembl_gene,std.error,statistic,p.value)
+write.csv(cis_gene_expression_cytotoxicity_significant_pvalue,"cis_gene_expression_cytotoxicity_significant_pvalue.csv",row.names = FALSE)
+
+#Use biomart to add gene symbols (from ensembl IDs)
+
+ensembl = useMart("ensembl", host="useast.ensembl.org", dataset="hsapiens_gene_ensembl")
+genes = cis_gene_expression_cytotoxicity_significant_pvalue$ensembl_gene
+G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),values=genes,mart= ensembl)
+cis_gene_expression_cytotoxicity_GENES_sigpvalue = merge(cis_gene_expression_cytotoxicity_significant_pvalue,G_list,by.x="ensembl_gene",by.y="ensembl_gene_id")
+colnames(cis_gene_expression_cytotoxicity_GENES_sigpvalue)[5] = "gene_name"
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Perform sub-analyses for separate cell lines, there are 19 different tissues available
+
+#read data in
+cancer_rx_rma_data <- fread("sanger1018_brainarray_ensemblgene_rma.txt", header=T)
+
+#change format of files
+cancer_rx_rma_data$ensembl_gene <- as.factor(cancer_rx_rma_data$ensembl_gene)
+cancer_rx_rma_data <- melt(cancer_rx_rma_data, id.vars=c("ensembl_gene"))
+
+# Load log(IC50) and AUC values
+ic50 <- read_xlsx("v17.3_fitted_dose_response.xlsx")
+
+#change format
+ic50$COSMIC_ID <- as.factor(ic50$COSMIC_ID)
+
+# Extract only information relating to cisplatin
+ic50_cis <- ic50[ic50$DRUG_NAME=="Cisplatin",]
+
+#Merge gene expression and IC50 data
+cancer_rx_rma_cis <- merge(cancer_rx_rma_data, ic50_cis, 
+                           by.x="variable", by.y="COSMIC_ID")
+
+# Read in cell line details
+cells <- read_xlsx("Cell_Lines_Details.xlsx")
+#format data
+colnames(cells) <- gsub("\n", "_", colnames(cells))
+colnames(cells) <- gsub("\r", "", colnames(cells))
+colnames(cells) <- gsub("\\(", "", colnames(cells))
+colnames(cells) <- gsub("\\)", "", colnames(cells))
+colnames(cells) <- gsub(" ", "_", colnames(cells))
+colnames(cells) <- gsub("__", "_", colnames(cells))
+cells$COSMIC_identifier <- as.factor(cells$COSMIC_identifier)
+
+# Merge cell data with expression and IC50 data
+cancer_rx_rma_cis_cells <- merge(cancer_rx_rma_cis, cells, 
+                                 by.x="variable", by.y="COSMIC_identifier")
+
+write.csv(cancer_rx_rma_cis,"cancer_rx_rma_cis.csv",row.names = FALSE)
+write.csv(cancer_rx_rma_cis_cells,"cancer_rx_rma_cis_cells.csv",row.names = FALSE)
+unique(cancer_rx_rma_cis_cells$GDSC_Tissue_descriptor_1) # 19 different tissues to do analyses on
+
+###IMPORTANT### As there are 19 tissues -> use find and replace to make files for each tissue!!!! ###
+## Ex: Replace urogenital_system with digestive_system, etc ##
+
+cancer_rx_rma_cis_urogenital_system <- filter(cancer_rx_rma_cis_cells, GDSC_Tissue_descriptor_1 == "urogenital_system")
+
+#Remove outliers for IC50 data
+extreme.threshold.upper_cells <- IQR(cancer_rx_rma_cis_urogenital_system$LN_IC50)*3 + quantile(cancer_rx_rma_cis_urogenital_system$LN_IC50)[4]
+extreme.threshold.lower_cells <- quantile(cancer_rx_rma_cis_urogenital_system$LN_IC50)[2] - IQR(cancer_rx_rma_cis_urogenital_system$LN_IC50)*3
+extreme.threshold.upper.gene_cells <- IQR(cancer_rx_rma_cis_urogenital_system$value)*3 + quantile(cancer_rx_rma_cis_urogenital_system$value)[4]
+extreme.threshold.lower.gene_cells <- quantile(cancer_rx_rma_cis_urogenital_system$value)[2] - IQR(cancer_rx_rma_cis_urogenital_system$value)*3
+cancer_rx_rma_cis_gene_urogenital_system <- cancer_rx_rma_cis_urogenital_system %>%
+  filter(LN_IC50>extreme.threshold.lower_cells, LN_IC50<extreme.threshold.upper_cells) %>%
+  filter(value>extreme.threshold.lower.gene_cells, value<extreme.threshold.upper.gene_cells)
+
+#Keep only gene IDs, IC50 values and gene expression values
+cancer_rx_rma_cis_gene_urogenital_system<-dplyr::select(cancer_rx_rma_cis_gene_urogenital_system,ensembl_gene, value, LN_IC50)
+
+#Rename columns
+colnames(cancer_rx_rma_cis_gene_urogenital_system) <- c("ensembl_gene", "LN_IC50", "gene_expression")
+
+#Perform multiple simple regressions looking at relationship between gene expression across cells vs cisplatin IC50 across cells for each gene seperately
+cis_gene_expression_cytotoxicity_urogenital_system <- cancer_rx_rma_cis_gene_urogenital_system %>%
+  nest(data = -ensembl_gene) %>% 
+  mutate(
+    fit = map(data, ~ lm(LN_IC50 ~ gene_expression, data = .x)),
+    tidied = map(fit, tidy)
+  ) %>% 
+  unnest(tidied)
+
+#Keep only relevance rows and columns
+cis_gene_expression_cytotoxicity_urogenital_system <- subset(cis_gene_expression_cytotoxicity_urogenital_system, term == "gene_expression")
+    colnames(cis_gene_expression_cytotoxicity_urogenital_system) <- c("ensembl_gene", "data", "fit","term","estimate","std.error_urogenital_system","statistic_urogenital_system","p.value_urogenital_system")
+        cis_gene_expression_cytotoxicity_urogenital_system_final<-dplyr::select(cis_gene_expression_cytotoxicity_urogenital_system,ensembl_gene,std.error_urogenital_system,statistic_urogenital_system,p.value_urogenital_system)
+
+#Putting them together: 
+  merge <- join_all(list(breast, 
+                         lung_SCLC,
+                         cis_gene_expression_cytotoxicity_lung_final,
+                         cis_gene_expression_cytotoxicity_lung_NSCLC_final, 
+                         cis_gene_expression_cytotoxicity_bone_final,
+                         cis_gene_expression_cytotoxicity_aero_dig_tract_final,
+                         cis_gene_expression_cytotoxicity_digestive_system_final,
+                         cis_gene_expression_cytotoxicity_nervous_system_final,
+                         cis_gene_expression_cytotoxicity_kidney_final,
+                         cis_gene_expression_cytotoxicity_large_intestine_final,
+                         cis_gene_expression_cytotoxicity_leukemia_final,
+                         cis_gene_expression_cytotoxicity_lymphoma_final,
+                         cis_gene_expression_cytotoxicity_myeloma_final,
+                         cis_gene_expression_cytotoxicity_neuroblastoma_final,
+                         cis_gene_expression_cytotoxicity_pancreas_final,
+                         cis_gene_expression_cytotoxicity_skin_final,
+                         cis_gene_expression_cytotoxicity_soft_tissue_final,
+                         cis_gene_expression_cytotoxicity_thyroid_final,
+                         cis_gene_expression_cytotoxicity_urogenital_system_final),
+                          by = 'ensembl_gene', type = 'full')
+
+#Get gene names for gene-based filtering
+ensembl = useMart("ensembl", host="useast.ensembl.org", dataset="hsapiens_gene_ensembl")
+  genes = merge$ensembl_gene
+    G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),values=genes,mart= ensembl)
+      merge_with_genes = merge(merge,G_list,by.x="ensembl_gene",by.y="ensembl_gene_id")
+        colnames(merge_with_genes)[59] = "gene_name"
+
+write.csv(merge_with_genes,"merge_with_genes.csv",row.names=FALSE)
