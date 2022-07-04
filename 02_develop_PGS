@@ -1,4 +1,5 @@
 ################################# Developing Polygenic Score from Kalra data in SBayesR ###################################
+################################### https://cnsgenomics.com/software/gctb/#Tutorial #######################################
 
 A) Creating .ma file for input into SBayesR - done in RStudio 
 
@@ -48,14 +49,14 @@ Kalra_vep_annotation<-Kalra_vep_annotation_combined.txt%>%
 #Formatting VEP output to get a gene column
 annotation_edits<-cSplit(data.frame(Kalra_vep_annotation),"gene",";") %>%
   dplyr::select(ensembl_gene_id, Name, gene_03,gene_04)%>%
-    dplyr::rename(no_distance=gene_03, normal_gene=gene_04)%>%
-      mutate_at("no_distance", str_replace, "SYMBOL=","") %>%
-        mutate_at("normal_gene", str_replace, "SYMBOL=","") %>% 
-          mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=HGNC","")%>%
-            mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=Clone_based_vega_gene","")%>% 
-              mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=Clone_based_ensembl_gene","") %>% 
-               mutate_at("no_distance", str_replace,"STRAND=1","")%>%
-                mutate_at("no_distance",str_replace,"STRAND=-1","")
+  dplyr::rename(no_distance=gene_03, normal_gene=gene_04)%>%
+  mutate_at("no_distance", str_replace, "SYMBOL=","") %>%
+  mutate_at("normal_gene", str_replace, "SYMBOL=","") %>% 
+  mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=HGNC","")%>%
+  mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=Clone_based_vega_gene","")%>% 
+  mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=Clone_based_ensembl_gene","") %>% 
+  mutate_at("no_distance", str_replace,"STRAND=1","")%>%
+  mutate_at("no_distance",str_replace,"STRAND=-1","")
 
 #Moving gene names into blank spaces 
 annotation_final<-annotation_edits %>% 
