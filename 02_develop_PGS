@@ -28,10 +28,37 @@ B) SBayesR - done in Linux
   --out /home/projects/cio/PRS_collab/kalra/sbayesr/test
   
   
-C) Annotation of SBayesR output - done in RStudio
+C) Annotation of SBayesR output
 #Annotation performed in Variant Effect Predictor(VEP)#
-#Need gene names as future filtering steps are gene-based#
+#Need gene names as future filtering steps are gene-based
 
+#1) Perform VEP analyses in Linux
+#/bin/bash
+VEP=/usr/local/src/ensembl-tools/scripts/variant_effect_predictor/variant_effect_predictor.pl
+DATA=/space3/cio_adults/VEP
+# Annotate with Ensembl VEP
+# The GRCh37 v76 databases are hosted on a different port on ensembldb.ensembl.org (3337)
+in_rsID=$DATA/Kalra_variant_rsIDs_annotation_round2.txt
+out_rsID=$DATA/Kalra_variant_rsIDs_vep_round2.txt
+CA=/space1/references/ensembl_cache
+REF=/space1/references
+perl $VEP \
+--port 3337 \
+--input $in_rsID \
+--output_file $out_rsID \
+--format id \
+--species homo_sapiens \
+--dir_cache $CA \
+--cache --fork 4 --gmaf --maf_1kg \
+--per_gene --check_existing --check_alleles \
+-force --symbol --failed 1 \
+#--sift b --polyphen b \
+#--plugin ExAC,$REF/ExAC/ExAC.r0.3.1.sites.vep.vcf.gz  \
+#--plugin LoF,human_ancestor_fa:$REF/human_ancestor/human_ancestor.fa.gz \
+#--plugin CADD,$REF/cadd/whole_genome_SNVs.tsv.gz,$REF/cadd/InDels.tsv.gz \
+#--plugin LoFtool
+
+#2)Clean annotation output in RStudio
 install.packages("tidyverse, splitstackshape")
 library(tidyverse)
 library(splitstackshape)
