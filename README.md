@@ -3,7 +3,7 @@ MSc Thesis source code. Completed under the supervision of Dr. Drögemöller at 
 
 
 This project is split into two parts:
-1) Predicting cisplatin-induced ototoxicity through the development of a polygenic score (PGS)
+1) Predicting cisplatin-induced ototoxicity through the development of a polygenic score (PGS)   
 01_Harmonization_PGS -> Harmonizing input summary statistics
 02_develop_PGS -> Preparing files for SBayesR, running SBayesR and annotating output with VEP
 03_refine_PGS -> 
