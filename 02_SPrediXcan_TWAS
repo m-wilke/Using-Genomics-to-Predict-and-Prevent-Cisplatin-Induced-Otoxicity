@@ -1,1 +1,112 @@
+########################## Performing S-PrediXcan Steps ############################
+############# Includes S-MultiXcan ########################
 
+
+#A) Imputation
+
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+#Kalra data set
+
+CHR=$1
+
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+OUTPUT=/home/projects/cio/metaxcan_results
+
+python3.6 $GWAS_TOOLS/gwas_summary_imputation.py \
+        -by_region_file $REF/eur_ld.bed.gz \
+        -gwas_file $OUTPUT/harmonization_gwas/correct_alleles/kalra_harmonized_alleles_correct \
+        -parquet_genotype $REF/reference_panel_1000G/chr${CHR}.variants.parquet \
+        -parquet_genotype_metadata $REF/reference_panel_1000G/variant_metadata.parquet \
+        -window 100000 \
+        -parsimony 7 \
+        -chromosome ${CHR} \
+        -regularization 0.1 \
+        -frequency_filter 0.01 \
+        --standardise_dosages \
+        -output $OUTPUT/summary_imputation/correct_alleles/kalra_harmonized_chr${CHR}.txt.gz
+
+
+#Also need to produce this script for imputation to run where the script file specified contains the information above
+
+#!/bin/bash
+for chr in {1..22}; do ./imputation_loop_correct_alleles.sh $chr; done
+
+
+#B) Post-processing
+
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+#Kalra data set
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+OUTPUT=/home/projects/cio/metaxcan_results
+
+python3.8 $GWAS_TOOLS/gwas_summary_imputation_postprocess.py \
+        -gwas_file $OUTPUT/harmonization_gwas/correct_alleles/kalra_harmonized_alleles_correct \
+        -folder $OUTPUT/summary_imputation/correct_alleles \
+        -pattern kalra_harmonized.* \
+        -parsimony 7 \
+        -output $OUTPUT/processed_summary_imputation/correct_alleles/kalra_harmonized_imputed.txt.gz
+        
+#C) S-PrediXcan tissue specific processing (uses GTEx v8) 
+ 
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+#Kalra data set
+
+METAXCAN=/opt/github_repository/MetaXcan/software
+REF=/home/projects/reference_data/metaxcan/data/models/eqtl/mashr
+OUTPUT=/home/projects/cio/metaxcan_results
+
+#create a list of tissues
+#ls -1 $REF/*db | sed 's/\/projects\/reference_data\/metaxcan\/data\/models\/eqtl\/mashr//g' | sed 's/\///g' | sed 's/mashr_//g'  | sed 's/.db//g' > $OUTPUT/spredixcan/eqtl/correct_alleles/gtex_tissues_v8.txt
+
+cd $METAXCAN
+while read tissue
+do
+
+python3.8 $METAXCAN/SPrediXcan.py \
+        --gwas_file  $OUTPUT/processed_summary_imputation/correct_alleles/kalra_harmonized_imputed.txt.gz \
+        --snp_column panel_variant_id --effect_allele_column effect_allele --non_effect_allele_column non_effect_allele --zscore_column zscore \
+        --model_db_path $REF/mashr_${tissue}.db \
+        --covariance $REF/mashr_${tissue}.txt.gz \
+        --keep_non_rsid --additional_output --model_db_snp_key varID \
+        --throw \
+        --output_file $OUTPUT/spredixcan/eqtl/correct_alleles/Kalra_${tissue}.csv
+done < $OUTPUT/spredixcan/eqtl/correct_alleles/gtex_tissues_v8.txt
+
+
+#D) S-MultiXcan aggregated tissue processing
+
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+#Kalra
+
+METAXCAN=/opt/github_repository/MetaXcan/software
+REF=/home/projects/reference_data/metaxcan/data
+OUTPUT=/home/projects/cio/metaxcan_results
+
+
+python3.8 $METAXCAN/SMulTiXcan.py \
+	--models_folder $REF/models/eqtl/mashr \
+	--models_name_pattern "mashr_(.*).db" \
+	--snp_covariance $REF/models/gtex_v8_expression_mashr_snp_smultixcan_covariance.txt.gz \
+	--metaxcan_folder $OUTPUT/spredixcan/eqtl/correct_alleles \
+	--metaxcan_filter "Kalra_(.*).csv" \
+	--metaxcan_file_name_parse_pattern "(.*)_(.*).csv" \
+	--gwas_file $OUTPUT/processed_summary_imputation/correct_alleles/kalra_harmonized_imputed.txt.gz \
+	--snp_column panel_variant_id \
+	--effect_allele_column effect_allele \
+	--non_effect_allele_column non_effect_allele \
+	--se_column standard_error \
+	--or_column or \
+	--keep_non_rsid \
+	--model_db_snp_key varID \
+	--cutoff_condition_number 30 \
+	--verbosity 7 \
+	--throw \
+  --output $OUTPUT/smultixcan/eqtl/correct_alleles/kalra_smultixcan.txt
