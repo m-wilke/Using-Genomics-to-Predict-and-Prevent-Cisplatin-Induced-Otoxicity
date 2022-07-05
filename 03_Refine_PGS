@@ -1,14 +1,14 @@
 ################### Performing Gene-based Filtering to Increase Relevance to Cisplatin-Induced Ototoxicity (done in RStudio) ########################
 
 ##############Four filters:(i) General hearing loss genes (i.e. no filters applied to SBayesR output)
-              (ii) Genes expressed in the inner and outer hair cells of the inner ear (using gEAR database)
-              (iii) Genes expressed in the general inner ear (using gEAR database)
-              (iv) Genes expressed in the inner and outer hair cells of the inner ear and has a drug-gene relationship with cisplatin
-              (using the Cancer Cell Line Encyclopedia and Drug Sensitivity in Cancer databases) 
+#              (ii) Genes expressed in the inner and outer hair cells of the inner ear (using gEAR database)
+#              (iii) Genes expressed in the general inner ear (using gEAR database)
+#              (iv) Genes expressed in the inner and outer hair cells of the inner ear and has a drug-gene relationship with cisplatin
+#              (using the Cancer Cell Line Encyclopedia and Drug Sensitivity in Cancer databases) 
               
-(i) General hearing loss genes -> no filtering needed
+#(i) General hearing loss genes -> no filtering needed
  
-(ii & iii) Increase relevance of genes to hearing using gEAR database (p7 mouse inner ear data)
+#(ii & iii) Increase relevance of genes to hearing using gEAR database (p7 mouse inner ear data)
 
 install.packages("tidyverse")
 library(tidyverse)
@@ -21,15 +21,15 @@ gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.
 names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene"
 gear_prs<-merge(merged_react_kalra,gear_genes, by="gene")
 
-a)Filtering for inner and outer hair cells of the inner ear
+#a)Filtering for inner and outer hair cells of the inner ear
 gear_prs_innerandoutercells<-filter(gear_prs, cell_type=="Hair_Cells") 
 distinct_innerandoutercells<-gear_prs_innerandoutercells %>% distinct(Name, .keep_all = TRUE) #removing duplicated rsIDs -> 235,609 SNPs
 
-b) Filtering for general inner ear cells
+#b) Filtering for general inner ear cells
 gear_prs_general_innerear<-filter(gear_prs, cell_type !="Hair_Cells")
 distinct_general_innerear<-gear_prs_general_innerear %>% distinct(Name, .keep_all = TRUE) #removing duplicated rsIds #735,758 SNPs
 
-(iv) Increase relevance of genes to hearing and cisplatin cytotoxicity
+#(iv) Increase relevance of genes to hearing and cisplatin cytotoxicity
 
 install.packages("tidyverse")
 library(tidyverse)
@@ -51,7 +51,6 @@ prs_cyto_tissue<-prs_cyto %>% filter_at(vars(p.value_breast,p.value_lung_SCLC,p.
 merged_gear_cyto<-merge(gear_prs,prs_cyto_tissue, by="Name") 
 distinct_gear_cyto<-merged_gear_cyto%>% distinct(Name, .keep_all=TRUE) #735,261
 merged_gear_cyto_innerandoutercells<-filter(distinct_gear_cyto, cell_type=="Hair_Cells") #176,379
-
 
 
 ###### Creating the cytotoxicity data file used in filter (iv) (in RStudio) ############
@@ -99,8 +98,8 @@ ic50_cis <- ic50[ic50$DRUG_NAME=="Cisplatin",]
 cancer_rx_rma_cis <- merge(cancer_rx_rma_data, ic50_cis, 
                            by.x="variable", by.y="COSMIC_ID")
 
-# Read in downloaded cell line details
-# wget ftp://ftp.sanger.ac.uk/pub/project/cancerrxgene/releases/current_release/Cell_Lines_Details.xlsx
+#Read in downloaded cell line details
+#wget ftp://ftp.sanger.ac.uk/pub/project/cancerrxgene/releases/current_release/Cell_Lines_Details.xlsx
 
 #load data in
 cells <- read_xlsx("Cell_Lines_Details.xlsx")
@@ -180,7 +179,7 @@ G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgn
 cis_gene_expression_cytotoxicity_GENES_sigpvalue = merge(cis_gene_expression_cytotoxicity_significant_pvalue,G_list,by.x="ensembl_gene",by.y="ensembl_gene_id")
 colnames(cis_gene_expression_cytotoxicity_GENES_sigpvalue)[5] = "gene_name"
 
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------
+########################################################################################################################################################
 #Perform sub-analyses for separate cell lines, there are 19 different tissues available
 
 #read data in
@@ -222,7 +221,8 @@ write.csv(cancer_rx_rma_cis,"cancer_rx_rma_cis.csv",row.names = FALSE)
 write.csv(cancer_rx_rma_cis_cells,"cancer_rx_rma_cis_cells.csv",row.names = FALSE)
 unique(cancer_rx_rma_cis_cells$GDSC_Tissue_descriptor_1) # 19 different tissues to do analyses on
 
-###IMPORTANT### As there are 19 tissues -> use find and replace to make files for each tissue!!!! ###
+#################################################### IMPORTANT ###############################################################################
+#As there are 19 tissues -> use find and replace to make files for each tissue!!!! ###
 ## Ex: Replace urogenital_system with digestive_system, etc ##
 
 cancer_rx_rma_cis_urogenital_system <- filter(cancer_rx_rma_cis_cells, GDSC_Tissue_descriptor_1 == "urogenital_system")
