@@ -1,0 +1,28 @@
+############# Harmonization of Kalra et al Summary Statistics using S-PrediXcan ########################
+
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+#Kalra data set
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+DATA=/home/projects/cio/summary_stats/hearing_loss
+OUTPUT=/home/projects/cio/metaxcan_results/harmonization_gwas
+
+mkdir -p $OUTPUT
+
+python3.8 $GWAS_TOOLS/gwas_parsing.py \
+        -gwas_file $DATA/Kalra_2020_mtag.txt.gz \
+        -fill_from_snp_info $REF/ucsc/snp150_hg19_parsed.txt.gz \
+        -liftover $REF/liftover/hg19ToHg38.over.chain.gz \
+        -snp_reference_metadata $REF/reference_panel_1000G/variant_metadata.txt.gz METADATA \
+        -output_column_map snpid variant_id \
+        -output_column_map a2 non_effect_allele \
+        -output_column_map a1 effect_allele \
+        -output_column_map mtag_beta effect_size \
+        -output_column_map mtag_pval pvalue \
+        -output_column_map mtag_se standard_error \
+        -output_column_map mtag_z zscore \
+        -output_column_map n sample_size \
+        -output_order variant_id panel_variant_id chromosome position effect_allele non_effect_allele frequency pvalue zscore effect_size standard_error sample_size n_cases \
+        -output $OUTPUT/correct_alleles/kalra_harmonized_alleles_correct
