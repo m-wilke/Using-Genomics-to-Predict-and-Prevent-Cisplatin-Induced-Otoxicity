@@ -1,7 +1,7 @@
 ############# Harmonization of Kalra et al Summary Statistics using S-PrediXcan ########################
 ### Uses Linux ####
 ### Kalra paper: https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009025 ###
-#### S-PrediXcan: https://www.biorxiv.org/content/10.1101/045260v6 AND https://github.com/hakyimlab/MetaXcan ###
+#### S-PrediXcan: https://www.nature.com/articles/s41467-018-03621-1 AND https://github.com/hakyimlab/MetaXcan ###
 
 #!/bin/bash
 # Here you could write HPC directives if running on a compute cluster
