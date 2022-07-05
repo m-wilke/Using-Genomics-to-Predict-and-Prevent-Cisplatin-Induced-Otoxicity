@@ -14,7 +14,7 @@ install.packages("tidyverse")
 library(tidyverse)
  
 #Reading in gEAR data that gives the highest expression for genes in inner ear cell types 
-#https://umgear.org/p?s=7e32dd02 (download request provides a gear_genes_expression folder in which the gene_data_max_mean.csv is located)
+#https://umgear.org/p?s=7e32dd02 (download request provides expression files and see the bottom of this script to how gene_data_max_mean.csv was made)
 gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T) 
 
 #Merging with annotated unfiltered kalra data
@@ -52,6 +52,76 @@ merged_gear_cyto<-merge(gear_prs,prs_cyto_tissue, by="Name")
 distinct_gear_cyto<-merged_gear_cyto%>% distinct(Name, .keep_all=TRUE) #735,261
 merged_gear_cyto_innerandoutercells<-filter(distinct_gear_cyto, cell_type=="Hair_Cells") #176,379
 
+########################################################################################################################################################
+
+######Creating the inner ear mean gene expression file used in filters (ii) and (iii) (in RStudio)########
+
+library(biomaRt)
+require(dplyr)
+library(reshape)
+library(data.table)
+
+mart1 = useMart("ensembl", dataset="hsapiens_gene_ensembl")
+mart2 = useMart("ensembl", dataset="mmusculus_gene_ensembl") 
+
+#human/mouse
+values<- getLDS(attributes=c("ensembl_gene_id"),
+       filters="ensembl_gene_id", values=genes$ensemble_ID, mart=mart2,
+       attributesL=c("hgnc_symbol"), martL=mart1)
+
+#Upload murine inner ear gene expression data
+genes <- fread("/home/projects/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_genes.tab", header=T)
+expression <- fread("/home/projects/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_expression.tab", header=T)
+observations <- fread("/home/projects/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_observations.tab", header=T)
+
+#Remove plus signs
+observations$cell_type<-gsub("\\+",".",observations$cell_type)
+observations$observations <- gsub("\\+",".",observations$observations)
+
+#unique cells
+cells <- data.frame(unique(observations$cell_type))
+s <- names(cells)
+cells <- dplyr::rename(cells, cell_type = s)
+
+#rename columns (using dplyr::rename)
+values <- dplyr::rename(values, human_gene_name = human_gene_name, ensemble_ID=mouse_ensembl_ids)
+
+#extract only gene expression data for genes included in the hearing loss gene lists (using filter)
+gene_list_filtered <- expression %>%
+  filter(ensemble_ID %in% ensembl_ids_human_gene_name$ensembl_ids)
+
+#melt currently only has a method for data.tables.)
+gene_data <- inner_join(values,expression, by = "ensemble_ID")
+gene_data <-as.data.table(gene_data)
+
+#reformat data so that (using melt based on ensemble_ID), so that you only have three columns
+gene_dataT <- melt(gene_data, id.vars = c("ensemble_ID", "human_gene_name"))
+
+#rename columns to allow for merging with observation data i.e. column name should match column name in observation data (using dplyr::rename)
+gene_dataT<-gene_dataT %>% rename(c("variable" = "observations", "value" = "gene_expression"))
+
+#merge with observation data (using inner_join)
+gene_dataT_join <- inner_join(gene_dataT,observations, by = "observations")
+
+#calculate mean gene expression for each group of cells (using group_by and summarise)
+gene_data_expression_mean <- gene_dataT_join %>% group_by(ensemble_ID, cell_type, human_gene_name) %>% summarise(gene_expression = mean(gene_expression))
+
+#include only cells showing highest gene expression
+gene_data_expression_mean_max <- gene_data_expression_mean %>% 
+  group_by(ensemble_ID) %>% 
+  filter(gene_expression == max(gene_expression)) 
+
+#create a column which will have yes or no values: expressed in any inner ear cells, expressed in Mes, expressed in Pf4, (repeat for all the subtypes).
+lengthOfCells<- nrow(cells)
+lengthOfData<- nrow(gene_data_expression_mean)
+for (i in 1:lengthOfData){
+  for(j in 1:lengthOfCells){
+    if (gene_data_expression_mean$cell_type[i] == cells$cell_type[j])
+      gene_data_expression_mean$is_it_expressed = "Yes"
+    else
+      gene_data_expression_mean$is_it_expressed = "No"
+  }
+}
 
 ###### Creating the cytotoxicity data file used in filter (iv) (in RStudio) ############
 
