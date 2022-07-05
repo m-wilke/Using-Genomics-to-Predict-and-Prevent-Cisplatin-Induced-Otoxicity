@@ -2,11 +2,11 @@
 ##########Testing against pediatric cisplatin-induced ototoxicity cohort (Meijer et al)(https://www.nature.com/articles/s41698-021-00178-z)
 ###Also testing a previously validated hearing loss polygenic score deposited in the PGS Catalogue (Cherny et al)(https://www.pgscatalog.org/publication/PGP000165/)
 
-A) Testing four pharmacogenomic refined scores based on Kalra data against Meijer data
+#A) Testing four pharmacogenomic refined scores based on Kalra data against Meijer data
 
-1) Prepping the files in RStudio
+#1) Prepping the files in RStudio
 #Kalra data
-(i) General hearing loss genes (unfiltered)
+#(i) General hearing loss genes (unfiltered)
 no_filter_react_kalra<-merged_react_kalra %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE)
 no_filter_react_kalra<-no_filter_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 no_filter_react_kalra$nCase=90710
@@ -15,7 +15,7 @@ no_filter_react_kalra$nControl=255925
 write.table(no_filter_react_kalra, file="/home/projects/cio/PRS_collab/kalra/React/kalra_genes_prs_no_filter.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
 
-(ii) Inner and outer hair cells of the inner ear
+#(ii) Inner and outer hair cells of the inner ear
 innerandouter_react_kalra<-distinct_innerandoutercells %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE)
 innerandouter_react_kalra<-innerandouter_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 innerandouter_react_kalra$nCase=90710
@@ -24,7 +24,7 @@ innerandouter_react_kalra$nControl=255925
 write.table(innerandouter_react_kalra, file="/home/projects/cio/PRS_collab/kalra/React/kalra_innerandouter_earcells.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
             
-(iii) General inner ear cells
+#(iii) General inner ear cells
 general_innerear_react_kalra<-distinct_general_innerear %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE) 
 general_innerear_react_kalra<-general_innerear_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 general_innerear_react_kalra$nCase=90710
@@ -33,7 +33,7 @@ general_innerear_react_kalra$nControl=255925
 write.table(general_innerear_react_kalra, file="/home/projects/cio/PRS_collab/kalra/React/kalra_general_innerear.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
             
-(iv) Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
+#(iv) Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
 react_gear_cyto_innerandoutercells<-merged_gear_cyto_innerandoutercells %>%dplyr::select(Name,Chrom.x, Position.x, A1.x, A2.x, pvalue.x, A1Effect.x, SE.x) 
 react_gear_cyto_innerandoutercells<-react_gear_cyto_innerandoutercells %>%dplyr::rename(SNP=Name, CHR=Chrom.x, BP=Position.x,A1=A1.x, A2=A2.x, Beta=A1Effect.x, P=pvalue.x, SE=SE.x)
 react_gear_cyto_innerandoutercells$nCase=90710
@@ -69,10 +69,10 @@ write.table(meijer_final, file="/home/projects/cio/PRS_collab/meijer/React/meije
             row.names = FALSE, col.names = TRUE)
 
 
-2) Running ReACt analyses in Linux
+#2) Running ReACt analyses in Linux
 #https://github.com/Paschou-Lab/ReAct#Group-PRS
 
-(i)General hearing loss genes (unfiltered)
+#(i)General hearing loss genes (unfiltered)
 echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
 Base /home/projects/cio/PRS_collab/kalra/React/kalra_genes_prs_no_filter.txt
 Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_kalra_no_filter.out
@@ -86,7 +86,7 @@ OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_kalra_no_filt
 #Second Step: do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_kalra_no_filter.grpprs
 
-(ii)Inner and outer hair cells of the inner ear
+#(ii)Genes expressed in the inner and outer hair cells of the inner ear
 echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
 Base /home/projects/cio/PRS_collab/kalra/React/kalra_innerandouter_earcells.txt
 Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_kalra_innerandouter.out
@@ -100,7 +100,7 @@ OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_kalra_inneran
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_kalra_innerandouter.grpprs
 
-(iii) General inner ear cells
+#(iii) Genes expressed in the general inner ear cells
 echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
 Base /home/projects/cio/PRS_collab/kalra/React/kalra_general_innerear.txt
 Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_kalra_general_innerear.out
@@ -114,7 +114,7 @@ OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_kalra_general
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_kalra_general_innerear.grpprs
 
-(iv)Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
+#(iv) Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
 echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
 Base /home/projects/cio/PRS_collab/kalra/React/merged_cyto_innerandouter.txt
 Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_cyto_innerandouter.out
@@ -128,9 +128,9 @@ OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_cyto_innerand
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_cyto_innerandouter.grpprs
 
-B) Testing previously validated hearing loss score (Cherny et al) against Meijer data
+#B) Testing previously validated hearing loss score (Cherny et al) against Meijer data
 
-1) Prepping the files in RStudio
+#1) Prepping the files in RStudio
 
 cherny<- read.delim("/home/projects/cio/summary_stats/hearing_loss/PGS000762_Cherny.txt", comment.char="#") #100,325 SNPs
 cherny$chr_name<-paste( "chr",cherny$chr_name, sep="")
@@ -152,7 +152,7 @@ final_cherny<-final_cherny %>%
 
 write.table(final_cherny, file="/home/projects/cio/PRS_collab/cherny/cherny_final.txt", append=FALSE,sep="\t", quote=FALSE, row.names=FALSE, col.names=T)
 
-2) Running ReACt analyses in Linux
+#2) Running ReACt analyses in Linux
 
 echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
 Base /home/projects/cio/PRS_collab/cherny/cherny_final.txt
