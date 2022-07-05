@@ -13,6 +13,6 @@ Both Linux and RStudio are used in scripts.
 * 01_Harmonization_TWAS -> Harmonizing input summary statistics
 * 02_SPrediXcan_TWAS -> Performing S-PrediXcan steps (i.e. imputation, post processing, tissue specific processing) as well as S-MultiXcan (aggregated tissue processing)
 * 03_refine_and_finemap_TWAS -> Fine-mapping S-MultiXcan results as well as increasing relevance of genes to cisplatin-induced ototoxicity
-* 04_drug_repurposing_TWAS -> Formatting filtered genesets for drug repurposing analyses in the Connectivity Map and also creating a figure to display output results
+* 04_drug_repurposing_TWAS -> Formatting filtered gene sets for drug repurposing analyses in the Connectivity Map and also creating a figure to display output results
 
 ## Any questions or comments are welcome!
