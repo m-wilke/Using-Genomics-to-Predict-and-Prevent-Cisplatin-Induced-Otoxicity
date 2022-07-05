@@ -7,7 +7,7 @@ This project is split into two parts:
 01_Harmonization_PGS -> Harmonizing input summary statistics
 02_develop_PGS -> Preparing files for SBayesR, running SBayesR and annotating output with VEP
 03_refine_PGS ->
-04_testing_PGS->
+04_testing_PGS-> 
 
 2) Preventing cisplatin-induced ototoxicity through discovering potential otoprotectants through a transcriptome-wide association study (TWAS)
 01_Harmonization_TWAS -> Harmonizing input summary statistics
