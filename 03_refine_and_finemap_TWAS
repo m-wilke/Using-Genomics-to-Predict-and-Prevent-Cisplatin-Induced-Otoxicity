@@ -2,7 +2,7 @@
 ####### Fine-mapping: https://github.com/bogdanlab/focus#readme AND https://www.nature.com/articles/s41588-019-0367-1 #######
 
 
-#1) Fine-mapping
+#######1) Fine-mapping
 #a) First have to change build to GRCh37 as this is compatible with FOCUS software (in Linux)
 
 #!/bin/bash
@@ -113,3 +113,8 @@ cred_0.05_final <-credible_0.05 %>% dplyr::select(gene_name, chrom, tissue, twas
  no_filter_for_clue<-cred_0.05_final %>% dplyr::select(gene_name,FOCUS_pip,FOCUS_zscore)
     no_filter_for_clue<-no_filter_for_clue %>% group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip)))
         no_filter_for_clue<-subset(no_filter_for_clue,Rank==1)
+        
+        
+#####2)Refinement (very similar to steps provided in 03_Refine_PGS in the repository)
+
+
