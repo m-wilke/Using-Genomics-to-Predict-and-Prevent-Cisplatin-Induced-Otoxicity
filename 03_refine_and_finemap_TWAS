@@ -2,7 +2,7 @@
 ####### Fine-mapping: https://github.com/bogdanlab/focus#readme AND https://www.nature.com/articles/s41588-019-0367-1 #######
 
 
-#######1) Fine-mapping
+######################1) Fine-mapping
 #a) First have to change build to GRCh37 as this is compatible with FOCUS software (in Linux)
 
 #!/bin/bash
@@ -115,6 +115,84 @@ cred_0.05_final <-credible_0.05 %>% dplyr::select(gene_name, chrom, tissue, twas
         no_filter_for_clue<-subset(no_filter_for_clue,Rank==1)
         
         
-#####2)Refinement (very similar to steps provided in 03_Refine_PGS in the repository)
+###########2)Refinement to cisplatin-induced ototoxicity in RStudio (very similar to steps provided in 03_Refine_PGS in the repository)
 
+#Four filters:(i) General hearing loss genes (i.e. no filters applied to SBayesR output)
+              (ii) Genes expressed in the inner and outer hair cells of the inner ear (using gEAR database)
+              (iii) Genes expressed in the general inner ear (using gEAR database)
+              (iv) Genes expressed in the inner and outer hair cells of the inner ear and has a drug-gene relationship with cisplatin
+              (using the Cancer Cell Line Encyclopedia and Drug Sensitivity in Cancer databases) 
+              
+(i) General hearing loss genes -> no filtering needed
+ 
+(ii & iii) Increase relevance of genes to hearing using gEAR database (p7 mouse inner ear data)
 
+install.packages("tidyverse")
+library(tidyverse)
+library(dplyr)
+ 
+#Reading in gEAR data that gives the highest expression for genes in inner ear cell types 
+#https://umgear.org/p?s=7e32dd02 (download request provides a gear_genes_expression folder in which the gene_data_max_mean.csv is located)
+gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T)
+
+#Merging inner ear data with credible genes that have P<0.05 in S-MultiXcan
+names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene_name"
+    merged_gear_focus<-inner_join(cred_0.05_final,gear_genes, by="gene_name") #807 genes
+        filtered_gear_focus_innerandoutercells<-filter(merged_gear_focus, cell_type=="Hair_Cells") # 271 genes
+           filtered_gear_focus_general_innerear<-filter(merged_gear_focus, cell_type !="Hair_Cells") #536 genes
+           
+#Finding gene that has highest pip value (i.e. Rank=1) as the one to take z_score information from
+#FOCUS gives multiple entries per gene for zscore, pip, tissue, etc          
+#Inner and outer ear cells            
+      filtered_gear_focus_innerandoutercells %>% 
+         dplyr::select(gene_name,FOCUS_pip,FOCUS_zscore) %>%
+             group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip))) ->filtered_gear_focus_innerandoutercells
+                 filtered_gear_focus_highestpip_innerandoutercells<-subset(filtered_gear_focus_innerandoutercells,Rank==1)
+           
+#General inner ear cells
+     filtered_gear_focus_general_innerear<-filtered_gear_focus_general_innerear %>% 
+          dplyr::select(gene_name,FOCUS_pip,FOCUS_zscore)%>% 
+             group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip))) 
+                 filtered_gear_focus_highestpip_general_innerear<-subset(filtered_gear_focus_general_innerear,Rank==1)
+
+(iv) Genes expressed in the inner and outer hair cells of the inner ear and has a drug-gene relationship with cisplatin
+
+#Finding genes that show a relationship with cytotoxicity data (pvalue<0.05)
+
+#Reading in the cytotoxicity data -> to see how merge_with_genes.csv was made, see the bottom of 03_Refine_PGS on this repository         
+cyto1<- read.csv("/home/projects/summer_students_2021/cio_vaibhav/Mackenzie/merge_with_genes.csv", header=TRUE) 
+
+#Merging significant cytotoxicity data and credible FOCUS data 
+merged_focus_cyto<-merge(cred_0.05_final,cyto1,by.x="gene_name",by.y="gene_name") #147 unique genes
+
+#Merging with inner ear data and then selecting gene with highest pip value and then looking at significant tissues
+#FOCUS gives multiple entries per gene for zscore, pip, tissue, etc)
+
+merged_gear_cyto<-inner_join(merged_gear_focus,merged_focus_cyto, by="gene_name") #143 genes
+           merged_gear_cyto_innerandoutercells<-filter(merged_gear_cyto, cell_type=="Hair_Cells") #45 genes
+           merged_gear_cyto_general_innerear<-filter(merged_gear_cyto, cell_type !="Hair_Cells") #98 genes
+
+#Finding gene that has highest pip value (i.e. Rank=1) for z-score value
+ 
+#General inner ear cells   
+  merged_gear_cyto_general_innerear<-merged_gear_cyto_general_innerear %>% group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip.x)))
+    merged_gear_cyto_general_innerear_highestpip<-subset(merged_gear_cyto_general_innerear,Rank==1)
+       merged_gear_cyto_general_innerear_highestpip<- distinct(merged_gear_cyto_general_innerear_highestpip, gene_name, .keep_all = TRUE) #98 genes
+
+#Inner and outer cells
+    merged_gear_cyto_innerandoutercells<-merged_gear_cyto_innerandoutercells %>% group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip.x)))
+       merged_gear_cyto_innerandoutercells_highestpip<-subset(merged_gear_cyto_innerandoutercells,Rank==1)
+          merged_gear_cyto_innerandoutercells_highestpip<- distinct(merged_gear_cyto_innerandoutercells_highestpip, gene_name, .keep_all = TRUE) #45 genes
+    
+#Making sure the cytotoxicity data is <0.05 in at least one tissue for both datasets
+#For the general inner ear dataset
+gear_focus_general_innerear_final<-merged_gear_cyto_general_innerear_highestpip %>%
+    filter_at(vars(p.value_breast,p.value_lung_SCLC,p.value_lung,p.value_lung_NSCLC,p.value_bone,p.value_aero_dig_tract,p.value_digestive_system,
+                   p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
+                   p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<0.05)) #76 genes         
+                                                        
+#For the inner and outer ear cells dataset
+gear_focus_innerandouterear_final<-merged_gear_cyto_innerandoutercells_highestpip %>% 
+          filter_at(vars(p.value_breast,p.value_lung_SCLC,p.value_lung,p.value_lung_NSCLC,p.value_bone,p.value_aero_dig_tract,p.value_digestive_system,
+                         p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
+                         p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<0.05)) #33 genes 
