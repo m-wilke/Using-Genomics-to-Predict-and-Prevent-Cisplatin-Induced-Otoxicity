@@ -1,4 +1,7 @@
 ############# Harmonization of Kalra et al Summary Statistics using S-PrediXcan ########################
+### Uses Linux ####
+### Kalra paper: https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009025 ###
+#### S-PrediXcan: https://www.biorxiv.org/content/10.1101/045260v6 AND https://github.com/hakyimlab/MetaXcan ###
 
 #!/bin/bash
 # Here you could write HPC directives if running on a compute cluster
@@ -26,3 +29,5 @@ python3.8 $GWAS_TOOLS/gwas_parsing.py \
         -output_column_map n sample_size \
         -output_order variant_id panel_variant_id chromosome position effect_allele non_effect_allele frequency pvalue zscore effect_size standard_error sample_size n_cases \
         -output $OUTPUT/correct_alleles/kalra_harmonized_alleles_correct
+        
+   #Note: the SNP reference metadata specification will change A1/A2 in Kalra summary statistics based on the correct metadata (i.e. will flip effect sizes if A1/A2 are opposite in summary stats compared to metaata)
