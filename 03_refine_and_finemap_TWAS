@@ -1,1 +1,115 @@
+################## Fine-mapping and Refining S-PrediXcan Results ##################
+####### Fine-mapping: https://github.com/bogdanlab/focus#readme AND https://www.nature.com/articles/s41588-019-0367-1 #######
 
+
+#1) Fine-mapping
+#a) First have to change build to GRCh37 as this is compatible with FOCUS software (in Linux)
+
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+#Kalra data set
+
+GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
+REF=/home/projects/reference_data/metaxcan/data
+OUTPUT=/home/projects/cio/focus
+DATA=/home/projects/cio/metaxcan_results/processed_summary_imputation
+
+mkdir -p $OUTPUT
+
+python3.8 $GWAS_TOOLS/gwas_parsing.py \
+    -gwas_file $DATA/correct_alleles/kalra_harmonized_imputed.txt.gz \
+    -liftover $REF/liftover/hg38ToHg19.over.chain.gz \
+    -output $OUTPUT/kalra_imputed_focus_correct_alleles.txt.gz
+    
+#b) Formatting file for FOCUS analyses (in RStudio)
+#Also have to also remove the MHC region
+
+library(data.table)
+library(dplyr)
+library(readxl)
+library(tidyverse)
+library(reshape)
+
+#Loading in file from GTEx with rsIDs 
+x<-fread("/home/projects/reference_data/metaxcan/data/liftover/GTEx_Analysis_2017-06-05_v8_WholeGenomeSeq_838Indiv_Analysis_Freeze.lookup_table.txt.gz", header=T)
+y<-read.table(gzfile("/home/projects/cio/focus/kalra_imputed_focus_correct_alleles.txt.gz"),header=T, sep="\t")
+
+#Merging the two files together by SNP name to get gene names
+x <- x %>% rename(panel_variant_id = variant_id) 
+  merge<-inner_join(x,y, by="panel_variant_id",copy=FALSE)
+    merge<-as_tibble(merge) %>% rename(SNP = rs_id_dbSNP151_GRCh38p7)
+
+#Changing headers to what FOCUS needs
+merge$chromosome<-gsub("chr","",as.character(merge$chromosome))
+  merge_final<-merge %>% dplyr::select(SNP,chromosome, position,effect_allele , non_effect_allele,frequency, sample_size, zscore, pvalue, effect_size) %>%
+   rename(CHR=chromosome,BP=position,A1=effect_allele,A2=non_effect_allele,FRQ=frequency,N=sample_size,Z=zscore,P=pvalue BETA=effect_size) 
+
+#Making new text file with changes to use as input in FOCUS analyses
+write.table(merge_final, file="/home/projects/cio/focus/imputed_kalra_withrsIDs_focus.txt", append = FALSE, sep ="\t", quote=FALSE,
+            row.names = FALSE, col.names = TRUE)
+
+#Exclude the MHC region on chrm 6 for FOCUS to run (6:28,477,797-33,448,354) found from https://www.ncbi.nlm.nih.gov/grc/human/regions/MHC?asm=GRCh37
+chrm6<-subset(merge_final, merge_final$CHR==6)
+chrm6_exclude<-subset(chrm6,BP<=28477797 | BP>=33448354)
+write.table(chrm6_exclude, file="/home/projects/cio/focus/imputed_kalra_withrsIDs_focus_chrm6_without_mhc.txt", append = FALSE, sep ="\t", quote=FALSE,
+    row.names = FALSE, col.names = TRUE)
+
+#c) Running FOCUS fine-mapping analyses (in Linux)
+#!/bin/bash
+# Here you could write HPC directives if running on a compute cluster
+
+#FOCUS is located here: /opt/github_repository/focus
+REF=/home/projects/reference_data/focus
+OUTPUT=/home/projects/cio/focus
+
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.1 $REF/focus.db --chr 1 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr1
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.2 $REF/focus.db --chr 2 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr2
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.3 $REF/focus.db --chr 3 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr3
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.4 $REF/focus.db --chr 4 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr4
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.5 $REF/focus.db --chr 5 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr5
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus_chrm6_without_mhc.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.6 $REF/focus.db --chr 6 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr6
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.7 $REF/focus.db --chr 7 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr7
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.8 $REF/focus.db --chr 8 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr8
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.9 $REF/focus.db --chr 9 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr9
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.10 $REF/focus.db --chr 10 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr10
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.11 $REF/focus.db --chr 11 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr11
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.12 $REF/focus.db --chr 12 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr12
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.13 $REF/focus.db --chr 13 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr13
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.14 $REF/focus.db --chr 14 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr14
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.15 $REF/focus.db --chr 15 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr15
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.16 $REF/focus.db --chr 16 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr16
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.17 $REF/focus.db --chr 17 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr17
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.18 $REF/focus.db --chr 18 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr18
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.19 $REF/focus.db --chr 19 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr19
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.20 $REF/focus.db --chr 20 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr20
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.21 $REF/focus.db --chr 21 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr21
+focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.22 $REF/focus.db --chr 22 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr22
+
+#Then concatenate all the output files from finemapping analyses
+cd /home/projects/cio/focus/focus_results_06
+cat kalra_focus.chr1 kalra_focus.chr2 kalra_focus.chr3 kalra_focus.chr4 kalra_focus.chr5 kalra_focus.chr6 kalra_focus.chr7 kalra_focus.chr8 kalra_focus.chr9 kalra_focus.chr10 kalra_focus.chr11 kalra_focus.chr12 kalra_focus.chr13 kalra_focus.chr14 kalra_focus.chr15 kalra_focus.chr16 kalra_focus.chr17 kalra_focus.chr18 kalra_focus.chr19 kalra_focus.chr20 kalra_focus.chr21 kalra_focus.chr22 > kalra_focus_allchr.tsv
+
+
+#d) Merge fine mapping results with S-MultiXcan results by gene name (in RStudio)
+library(tidyverse)
+library(dplyr)
+
+focus_results<-read.table(file = "/home/projects/cio/focus/focus_results_06/kalra_focus_allchr.tsv", sep = '\t', header = TRUE)
+smultixcan_results<-read.table("/home/projects/cio/metaxcan_results/smultixcan/eqtl/correct_alleles/kalra_smultixcan.txt", sep='\t', header=TRUE)
+
+focus_results<-rename(focus_results,gene_name = "mol_name")
+  merge_f_s<-inner_join(focus_results,smultixcan_results, by="gene_name",copy=FALSE) 
+
+#Filtering what genes have p<0.05 in S-MultiXcan results and are credible based on fine-mapping results
+sig_0.05<-subset(merge_f_s,pvalue <=0.05)
+  credible_0.05<-subset(sig_0.05, in_cred_set>=1) #178 credible genes with pvalue<0.05-> found from unique(cred_0.05_final$gene_name)
+
+#Formatting column names
+cred_0.05_final <-credible_0.05 %>% dplyr::select(gene_name, chrom, tissue, twas_z, pip, t_i_best, z_mean, pvalue, in_cred_set)
+  cred_0.05_final<-cred_0.05_final %>% rename(chromosome=chrom, FOCUS_tissue=tissue, FOCUS_zscore=twas_z, FOCUS_pip=pip, SPredixcan_tissue=t_i_best, SPredixcan_zscore=z_mean, SPredixcan_pvalue=pvalue)
+               
+#Finding gene that has highest pip value (i.e. Rank=1) as the one to take z_score information from for future CLUE analyses
+#FOCUS gives multiple entries per gene for zscore, pip, tissue, etc so need to take rank into consideration
+ no_filter_for_clue<-cred_0.05_final %>% dplyr::select(gene_name,FOCUS_pip,FOCUS_zscore)
+    no_filter_for_clue<-no_filter_for_clue %>% group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip)))
+        no_filter_for_clue<-subset(no_filter_for_clue,Rank==1)
