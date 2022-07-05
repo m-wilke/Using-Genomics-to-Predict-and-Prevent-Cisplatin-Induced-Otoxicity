@@ -1,1 +1,39 @@
+########## Drug Repurposing Analyses in the Connectivity Map/CLUE developed by Broad Institute ##########
+##CLUE: https://clue.io/query AND https://www.nature.com/articles/nrc2044 ######
+
+#1) Preparing the four different filtered gene sets for input into CLUE
+#Need to seperate by up and down regulated genes (this is based on z-scores)
+#All default settings used on CLUE Query Tool
+
+library(tidyverse)
+library(dyplyr)
+
+#(i) General hearing loss genes (unfiltered)
+positive<-subset(no_filter_for_clue,FOCUS_zscore>0) #93 genes
+negative<-subset(no_filter_for_clue,FOCUS_zscore<0) #85 genes
+                writeLines(negative$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/downregulated_for_CLUE_nofilter.txt")
+                 writeLines(positive$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/upregulated_for_CLUE_nofilter.txt")
+                 
+#(ii) Genes expressed in inner and outer ear hair cells            
+filtered_positive_focus_innerandouter<-subset(filtered_gear_focus_highestpip_innerandoutercells,FOCUS_zscore>0) #24 genes
+filtered_negative_focus_innerandouter<-subset(filtered_gear_focus_highestpip_innerandoutercells,FOCUS_zscore<0)#23 genes
+           writeLines(filtered_positive_focus_innerandouter$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/innerandouter_upregulated.txt")
+           writeLines(filtered_negative_focus_innerandouter$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/innerandouter_downregulated.txt")
+
+#(iii) Genes expressed in general inner ear cells
+filtered_positive_focus_general_innerear<-subset(filtered_gear_focus_highestpip_general_innerear,FOCUS_zscore>0) #51 genes
+filtered_negative_focus_general_innerear<-subset(filtered_gear_focus_highestpip_general_innerear,FOCUS_zscore<0) #49 genes
+           writeLines(filtered_positive_focus_general_innerear$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/general_innerear_upregulated.txt")
+           writeLines(filtered_negative_focus_general_innerear$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/general_innerear_downregulated.txt")
+      
+
+#(iv) Genes expressed in inner and outer ear hair cells and has a gene-cisplatin cytotoxicity relationship    
+merged_gear_cyto_innerandoutercells_upreg<-subset(gear_focus_innerandouterear_final,FOCUS_zscore.x>0) #16 genes
+merged_gear_cyto_innerandoutercells_downreg<-subset(gear_focus_innerandouterear_final,FOCUS_zscore.x<0) #17 genes
+        writeLines(merged_gear_cyto_innerandoutercells_upreg$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/upregulated_Urim_Vaibhav_innerandouter.txt")
+        writeLines(merged_gear_cyto_innerandoutercells_downreg$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/downregulated_Urim_Vaibhav_innerandouter.txt")
+
+
+#2) Making a plot to represent drug repurposing results (in RStudio)
+
 
