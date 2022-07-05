@@ -110,3 +110,10 @@ python3.8 $METAXCAN/SMulTiXcan.py \
 	--verbosity 7 \
 	--throw \
   --output $OUTPUT/smultixcan/eqtl/correct_alleles/kalra_smultixcan.txt
+  
+#Create a Miami plot in the program TWAS plotter (https://github.com/opain/TWAS-plotter)
+#Have terminal/Linux to location where Rscript and file name are located              
+           
+Rscript TWAS plotter script \
+--twas kalra_smultixcan.txt  \
+--output test
