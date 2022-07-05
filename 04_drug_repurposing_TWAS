@@ -34,6 +34,65 @@ merged_gear_cyto_innerandoutercells_downreg<-subset(gear_focus_innerandouterear_
         writeLines(merged_gear_cyto_innerandoutercells_downreg$gene_name, "/home/projects/cio/focus/CLUE/correct_alleles/downregulated_Urim_Vaibhav_innerandouter.txt")
 
 
-#2) Making a plot to represent drug repurposing results (in RStudio)
+#2) Making a plot to represent drug repurposing results for each of the four filtered gene sets (in RStudio)
+#I made seperate csv files for each filtered gene set's CLUE output that included the top five perturbagens with their associated information
+#Ex: column names in each csv included perturbagen name, median connectivity score, gene set filter type, perturbagen type and gene expression profile (i.e. similar or dissimilar to input)
+#See this video for more help and information on drug repurposing analyses and visualization: https://www.youtube.com/watch?v=OGYreVFV89Q
+
+library(tidyverse)
+library(dyplyr)
+library(ggplot2)
+library(cowplot)
+
+#(i) General hearing loss genes (unfiltered)
+clue_results_top5_nofilter<-read.csv("/Users/msarvis/Desktop/Masters/Masters/Final_meeting_2022/drug_repurposing_results_no_filter.csv", stringsAsFactors = FALSE)
+p0 <- ifelse(clue_results_top5_nofilter$Median_connectivity_score < 0, "blue", "red")
+clue_results_top5_nofilter$Compound_or_gene <- factor(clue_results_top5_nofilter$Compound_or_gene, levels = clue_results_top5_nofilter$Compound_or_gene)
+p <- ggplot(clue_results_top5_nofilter, aes(Median_connectivity_score, Compound_or_gene))
+
+p1<-p + geom_point(aes(colour = Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12) + ggtitle("Top Drug Repurposing Results (no filter)")+ 
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, colour = p0)) +
+  scale_shape_manual(values= c(19,18,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
+  scale_size_manual(values=c(3,4,3))
+
+#(ii) Genes expressed in the inner and outer hair cells of the inner ear
+
+clue_results_top5_innerandouterear<-read.csv("/Users/msarvis/Desktop/Masters/Masters/Final_meeting_2022/drug_repurposing_results_innerandouter_ear.csv", stringsAsFactors = FALSE)
+b0<-ifelse(clue_results_top5_innerandouterear$Median_connectivity_score < 0, "blue", "red")
+clue_results_top5_innerandouterear$Compound_or_gene <- factor(clue_results_top5_innerandouterear$Compound_or_gene, levels = clue_results_top5_innerandouterear$Compound_or_gene)
+b <- ggplot(clue_results_top5_innerandouterear, aes(Median_connectivity_score, Compound_or_gene))
+
+b1<-b + geom_point(aes(colour = Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12)+ ggtitle("Top Drug Repurposing Results (inner and outer hair cells in the inner ear)") +
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, colour = b0))+
+  scale_shape_manual(values= c(19,15,18,1,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
+  scale_size_manual(values=c(4,4,4,4,3)) 
+  
+#(iii) Genes expressed in the general inner ear
+
+clue_results_top5_general_innerear<-read.csv("/Users/msarvis/Desktop/Masters/Masters/Final_meeting_2022/drug_repurposing_results_general_innerear.csv", stringsAsFactors = FALSE)
+a0<-ifelse(clue_results_top5_general_innerear$Median_connectivity_score < 0, "blue", "red")
+clue_results_top5_general_innerear$Compound_or_gene <- factor(clue_results_top5_general_innerear$Compound_or_gene, levels = clue_results_top5_general_innerear$Compound_or_gene)
+a <- ggplot(clue_results_top5_general_innerear, aes(Median_connectivity_score, Compound_or_gene))
+
+a1<-a + geom_point(aes(colour= Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12) + ggtitle ("Top Drug Repurposing Results (general inner ear cells)") + 
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, colour = a0)) +
+  scale_shape_manual(values= c(19,18,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
+  scale_size_manual(values=c(3,4,3))
+
+#(iv) Genes expressed in the inner and outer hair cells and has a relationship with cisplatin cytotoxicity 
+clue_results_top5_cytotoxicity_innerandouterear<-read.csv("/Users/msarvis/Desktop/Masters/Masters/Final_meeting_2022/drug_repurposing_innerandouter_cytotoxicity.csv", stringsAsFactors = FALSE)
+d0<-ifelse(clue_results_top5_cytotoxicity_innerandouterear$Median_connectivity_score < 0, "blue", "red")
+clue_results_top5_cytotoxicity_innerandouterear$Compound_or_gene <- factor(clue_results_top5_cytotoxicity_innerandouterear$Compound_or_gene, levels = clue_results_top5_cytotoxicity_innerandouterear$Compound_or_gene)
+d <- ggplot(clue_results_top5_cytotoxicity_innerandouterear, aes(Median_connectivity_score, Compound_or_gene))
+
+d1<-d + geom_point(aes(colour = Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12)+ ggtitle("Top Drug Repurposing Results (Merged cisplatin cytotoxicity & inner/outer hair cells in the inner ear)") +
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, colour = d0))+
+  scale_shape_manual(values= c(19,8,18,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
+  scale_size_manual(values=c(3,3,4,3)) 
 
 
+#Put them all together into a graph
+library(ggplot2)
+library(cowplot)
+plot_grid(p1, a1, b1, d1, labels = c('1', '2', '3','4'), ncol = 1)
+ggsave("/Users/msarvis/Desktop/Masters/Masters/Final_meeting_2022/drug_repurposing.png", height=17, width=12, units='in', dpi=300)
