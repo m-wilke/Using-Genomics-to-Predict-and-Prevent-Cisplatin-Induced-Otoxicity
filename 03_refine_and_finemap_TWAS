@@ -30,18 +30,12 @@ library(readxl)
 library(tidyverse)
 library(reshape)
 
-#Loading in file from GTEx with rsIDs 
-x<-fread("/home/projects/reference_data/metaxcan/data/liftover/GTEx_Analysis_2017-06-05_v8_WholeGenomeSeq_838Indiv_Analysis_Freeze.lookup_table.txt.gz", header=T)
+##Changing headers to what FOCUS needs for summary stats file
+
 y<-read.table(gzfile("/home/projects/cio/focus/kalra_imputed_focus_correct_alleles.txt.gz"),header=T, sep="\t")
 
-#Merging the two files together by SNP name to get gene names
-x <- x %>% rename(panel_variant_id = variant_id) 
-  merge<-inner_join(x,y, by="panel_variant_id",copy=FALSE)
-    merge<-as_tibble(merge) %>% rename(SNP = rs_id_dbSNP151_GRCh38p7)
-
-#Changing headers to what FOCUS needs
-merge$chromosome<-gsub("chr","",as.character(merge$chromosome))
-  merge_final<-merge %>% dplyr::select(SNP,chromosome, position,effect_allele , non_effect_allele,frequency, sample_size, zscore, pvalue, effect_size) %>%
+y$chromosome<-gsub("chr","",as.character(y$chromosome))
+  merge_final<-y %>% dplyr::select(SNP,chromosome, position,effect_allele , non_effect_allele,frequency, sample_size, zscore, pvalue, effect_size) %>%
    rename(CHR=chromosome,BP=position,A1=effect_allele,A2=non_effect_allele,FRQ=frequency,N=sample_size,Z=zscore,P=pvalue BETA=effect_size) 
 
 #Making new text file with changes to use as input in FOCUS analyses
