@@ -11,8 +11,9 @@ no_filter_react_kalra<-merged_react_kalra %>% dplyr::select(Name,Chrom, Position
 no_filter_react_kalra<-no_filter_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 no_filter_react_kalra$nCase=90710
 no_filter_react_kalra$nControl=255925
+no_filter_react_kalra_unique_snps<-no_filter_react_kalra %>% distinct(SNP, .keep_all = TRUE)#2,753,914
 
-write.table(no_filter_react_kalra, file="/home/projects/cio/PRS_collab/kalra/React/kalra_genes_prs_no_filter.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(no_filter_react_kalra_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/kalra_genes_prs_no_filter.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
 
 #(ii) Inner and outer hair cells of the inner ear
@@ -20,8 +21,9 @@ innerandouter_react_kalra<-distinct_innerandoutercells %>% dplyr::select(Name,Ch
 innerandouter_react_kalra<-innerandouter_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 innerandouter_react_kalra$nCase=90710
 innerandouter_react_kalra$nControl=255925
+innerandouter_react_kalra_unique_snps<-innerandouter_react_kalra%>%distinct(SNP,.keep_all=TRUE) #288,135 SNPs 
 
-write.table(innerandouter_react_kalra, file="/home/projects/cio/PRS_collab/kalra/React/kalra_innerandouter_earcells.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(innerandouter_react_kalra_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/kalra_innerandouter_earcells.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
             
 #(iii) General inner ear cells
@@ -29,8 +31,9 @@ general_innerear_react_kalra<-distinct_general_innerear %>% dplyr::select(Name,C
 general_innerear_react_kalra<-general_innerear_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 general_innerear_react_kalra$nCase=90710
 general_innerear_react_kalra$nControl=255925
+general_innerear_react_kalra_unique_snps<-general_innerear_react_kalra %>% distinct(SNP, .keep_all = TRUE)#875,637 SNPs
 
-write.table(general_innerear_react_kalra, file="/home/projects/cio/PRS_collab/kalra/React/kalra_general_innerear.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(general_innerear_react_kalra_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/kalra_general_innerear.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
             
 #(iv) Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
@@ -38,8 +41,10 @@ react_gear_cyto_innerandoutercells<-merged_gear_cyto_innerandoutercells %>%dplyr
 react_gear_cyto_innerandoutercells<-react_gear_cyto_innerandoutercells %>%dplyr::rename(SNP=Name, CHR=Chrom.x, BP=Position.x,A1=A1.x, A2=A2.x, Beta=A1Effect.x, P=pvalue.x, SE=SE.x)
 react_gear_cyto_innerandoutercells$nCase=90710
 react_gear_cyto_innerandoutercells$nControl=255925
+react_gear_cyto_innerandoutercells_unique_snps<-react_gear_cyto_innerandoutercells %>% distinct(SNP, .keep_all = TRUE)#215,430 SNPs
 
-write.table(react_gear_cyto_innerandoutercells, file="/home/projects/cio/PRS_collab/kalra/React/merged_cyto_innerandouter.txt", append = FALSE, sep ="\t", quote=FALSE, 
+
+write.table(react_gear_cyto_innerandoutercells_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/merged_cyto_innerandouter.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
 
 #Meijer data
