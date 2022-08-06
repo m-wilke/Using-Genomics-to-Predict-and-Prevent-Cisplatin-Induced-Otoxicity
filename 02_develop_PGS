@@ -72,51 +72,33 @@ Kalra_vep_annotation_combined.txt <- read.table("/home/projects/cio/annotation/K
 Kalra_vep_annotation<-Kalra_vep_annotation_combined.txt%>%
   dplyr::rename(ensembl_gene_id=V4, Name=V1, gene=V14) %>%
    dplyr::select(ensembl_gene_id, Name, gene)
-
-#Formatting VEP output to get a gene column
-annotation_edits<-cSplit(data.frame(Kalra_vep_annotation),"gene",";") %>%
-  dplyr::select(ensembl_gene_id, Name, gene_03,gene_04)%>%
-  dplyr::rename(no_distance=gene_03, normal_gene=gene_04)%>%
-  mutate_at("no_distance", str_replace, "SYMBOL=","") %>%
-  mutate_at("normal_gene", str_replace, "SYMBOL=","") %>% 
-  mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=HGNC","")%>%
-  mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=Clone_based_vega_gene","")%>% 
-  mutate_at("normal_gene", str_replace, "SYMBOL_SOURCE=Clone_based_ensembl_gene","") %>% 
-  mutate_at("no_distance", str_replace,"STRAND=1","")%>%
-  mutate_at("no_distance",str_replace,"STRAND=-1","")
-
-#Moving gene names into blank spaces 
-annotation_final<-annotation_edits %>% 
-  unite('gene',c('no_distance','normal_gene'), sep="") %>%
-    dplyr::select(Name,gene) 
-
-#See if the number of unique rsIDs are the same in the VEP file and the SBayesR file
+   
+##See if the number of unique rsIDs are the same in the vep file and the SBayesR file
 unique(kalra_sbayesr_hg19$Name) #2,753,914
-unique(annotation_final$Name) #2,790,191
+unique(Kalra_vep_annotation$Name) #2,790,191 -> more than sbayesR output therefore no need to manually annotate 
 
-#Find the number of SNPs in SBayesR that were not annotated by VEP
-anti_join<-anti_join(kalra_sbayesr_hg19,annotation_final, by="Name") #12,556 SNPs
+#find protein coding genes 
+library(biomaRt)  
+ensembl = useMart("ensembl", host="https://asia.ensembl.org", dataset="hsapiens_gene_ensembl")
+genes = Kalra_vep_annotation$ensembl_gene_id
+G_list <- getBM(filters= "ensembl_gene_id", attributes= c("ensembl_gene_id","hgnc_symbol"),values=genes,mart= ensembl)
+merge_with_genes = merge(Kalra_vep_annotation,G_list,by.x="ensembl_gene_id",by.y="ensembl_gene_id")
+annotation_final<-merge_with_genes%>% dplyr::select(ensembl_gene_id,Name,hgnc_symbol)%>%dplyr::rename(biomart_gene=hgnc_symbol)
 
-#Create file to run through ENSEMBl to get gene names for these variants (specify hg19)
-write.table(anti_join$Name, file="/home/projects/cio/annotation/anti_join_results_hg19.txt", append = FALSE, sep ="\t", quote=FALSE, 
-            row.names = FALSE, col.names = FALSE) 
-
-#Output from Ensembl
-anti_join_from_ensembl <- read.delim("/home/projects/cio/annotation/anti_join_results_ensembl_hg19.txt", header=FALSE, comment.char="#") %>%
-  dplyr::select(V1,V6)%>%
-   dplyr::rename(Name=V1,gene=V6)
-
-#Put the new annotated genes back into the VEP file 
-annotation_filled<-rbind(annotation_final,anti_join_from_ensembl) 
-
-#Add back into the SBayesR file 
-kalra_genes_prs<-left_join(kalra_sbayesr_hg19,annotation_filled, by= "Name") #left join as we only want the SNPs in the SBayesR file to be included
+##Add back into the merged file ->> now use to filter based on gear and cisplatin (remove duplicates in these sections too)
+kalra_genes_prs<-left_join(kalra_sbayesr_hg19,annotation_final, by= "Name") #left join as we only want the SNPs in the SBayesR file to be included
 unique(kalra_genes_prs$Name) #2,753,914 ==equals the output number of the original SBayesR file (but there are duplicates)
+kalra_genes_prs<-kalra_genes_prs%>%dplyr::select(Name,Chrom,Position,A1,A2,A1Effect,SE,ensembl_gene_id, biomart_gene)%>%dplyr::rename(gene=biomart_gene) 
 
-#Take out any duplicated SNPs (precautionary step)
-n_occur <- data.frame(table(kalra_genes_prs$Name)) #counts the duplicated SNPs
-distinct_react_kalra<-kalra_genes_prs %>% distinct(Name, .keep_all = TRUE) #2,753,914 SNPs
+#Find out which observations are not annotated to a transcript and how many unique genes 
+kalra_genes_prs <- kalra_genes_prs %>% mutate_all(na_if,"") 
+sum(is.na(kalra_genes_prs$ensembl_gene_id))#1,045,047 not annotated (i.e. SNVs on dbSNP with no ensembl IDs)
+unique(kalra_genes_prs$gene) #~34,386 genes (anything with an ensembl ID and hgnc symbol was annotated)
 
-#Merging back to the Kalra harmonization file (see Part A in this file) to get p values needed for ReACt script
-kalra_harmonized_hg19<-kalra_harmonized_hg19%>%dplyr::rename(Name=variant_id)
-merged_react_kalra<-merge(distinct_react_kalra,kalra_harmonized_hg19, by="Name")
+#Merging to get the p value from the harmonization file because the PIP is not a true  p value 
+#Base cohort harmonization file (see above in the file)
+kalra_harmonized_hg19_for_merging<-kalra_harmonized_hg19_for_merging%>%dplyr::select(variant_id, pvalue)%>%dplyr::rename(Name=variant_id)
+merged_react_kalra<-merge(kalra_genes_prs,kalra_harmonized_hg19_for_merging, by="Name")
+
+#Use merged_react_kalra for the no filter ReACt analyses as well as a base for refinement strategies.
+
