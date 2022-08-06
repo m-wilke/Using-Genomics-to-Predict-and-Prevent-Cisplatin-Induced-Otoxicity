@@ -185,8 +185,129 @@ gear_focus_general_innerear_final<-merged_gear_cyto_general_innerear_highestpip 
                    p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
                    p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<0.05)) #76 genes         
                                                         
-#For the inner and outer ear cells dataset
+#For the inner and outer ear cells/cytotoxicity correlation dataset
 gear_focus_innerandouterear_final<-merged_gear_cyto_innerandoutercells_highestpip %>% 
           filter_at(vars(p.value_breast,p.value_lung_SCLC,p.value_lung,p.value_lung_NSCLC,p.value_bone,p.value_aero_dig_tract,p.value_digestive_system,
                          p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
                          p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<0.05)) #33 genes 
+                         
+#Differential Expression plot of inner and outer ear cells/cyototxicity correlation dataset
+
+gear_focus_innerandouterear_final$Differential_expression[gear_focus_innerandouterear_final$FOCUS_zscore.x > 0 ] <- "Up Regulated"
+gear_focus_innerandouterear_final$Differential_expression[gear_focus_innerandouterear_final$FOCUS_zscore.x < 0] <- "Down Regulated"
+
+gear_focus_innerandouterear_final$FOCUS_zscore.x<-as.numeric(gear_focus_innerandouterear_final$FOCUS_zscore.x)
+gear_focus_innerandouterear_final<-gear_focus_innerandouterear_final[order(gear_focus_innerandouterear_final$FOCUS_zscore.x, decreasing = TRUE),] 
+gear_focus_innerandouterear_final$gene_name<-factor(gear_focus_innerandouterear_final$gene_name, levels= gear_focus_innerandouterear_final$gene_name)
+gear_focus_innerandouterear_final$FOCUS_pip.x<-as.numeric(gear_focus_innerandouterear_final$FOCUS_pip.x)
+
+ggplot(data=gear_focus_innerandouterear_final, aes(x=gene_name, y=FOCUS_zscore.x, fill=Differential_expression))+ ggtitle("Gene Expression in Genes Expressed in Inner/Outer Hair Cells and Correlated with Cisplatin Cytotoxicity") +
+  geom_bar(stat="identity") + theme_minimal() +xlab("Genes") + ylab("Z-score") +theme(axis.text.x = element_text(angle = 90,face="italic"),plot.title = element_text(size=10, hjust = 0.5)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + guides(fill=guide_legend(title="Differential Expression"))
+ggsave("/home/projects/cio/metaxcan_results/expression_plots_4geneset.pdf", height=4, width=8, units='in', dpi=300)
+
+
+#Heatplot of inner and outer ear cells/cytotoxicity correlation dataset:
+
+setwd("/home/projects/cio/metaxcan_results/spredixcan/eqtl/correct_alleles")
+
+kalra_Adipose_Subcutaneous<-read.csv("Kalra_Adipose_Subcutaneous.csv");kalra_Adipose_Subcutaneous$tissue="Adipose-Subcutaneous"
+kalra_Adipose_Visceral_Omentum<-read.csv("Kalra_Adipose_Visceral_Omentum.csv");kalra_Adipose_Visceral_Omentum$tissue="Adipose-Visceral Omentum"
+kalra_Adrenal_Gland<-read.csv("Kalra_Adrenal_Gland.csv");kalra_Adrenal_Gland$tissue="Adrenal Gland"
+kalra_Artery_Aorta<-read.csv("Kalra_Artery_Aorta.csv");kalra_Artery_Aorta$tissue="Artery-Aorta"
+kalra_Artery_Coronary<-read.csv("Kalra_Artery_Coronary.csv");kalra_Artery_Coronary$tissue="Artery-Coronary"
+kalra_Artery_Tibial<-read.csv("Kalra_Artery_Tibial.csv");kalra_Artery_Tibial$tissue="Artery-Tibial"
+kalra_Brain_Amygdala <- read.csv("Kalra_Brain_Amygdala.csv");kalra_Brain_Amygdala$tissue= "Brain-Amygdala"
+kalra_Brain_Caudate_basal_ganglia<-read.csv("Kalra_Brain_Anterior_cingulate_cortex_BA24.csv");kalra_Brain_Caudate_basal_ganglia$tissue="Brain-Caudate Basal Ganglia"
+kalra_Brain_Anterior_cingulate_cortex_BA24<-read.csv("Kalra_Brain_Anterior_cingulate_cortex_BA24.csv");kalra_Brain_Anterior_cingulate_cortex_BA24$tissue="Brain-Anterior Cingulate Cortex"
+kalra_Brain_cerebellar_hemisphere<-read.csv("Kalra_Brain_Cerebellar_Hemisphere.csv");kalra_Brain_cerebellar_hemisphere$tissue="Brain Cerebellar-Hemisphere"
+kalra_brain_cerebellum<-read.csv("Kalra_Brain_Cerebellum.csv");kalra_brain_cerebellum$tissue="Brain-Cerebellum"
+kalra_Brain_Cortex<-read.csv("Kalra_Brain_Cortex.csv");kalra_Brain_Cortex$tissue="Brain-Cortex"
+kalra_Brain_Frontal_Cortex_BA9<-read.csv("Kalra_Brain_Frontal_Cortex_BA9.csv");kalra_Brain_Frontal_Cortex_BA9$tissue="Brain-Frontal Cortex"
+kalra_Brain_Hippocampus<-read.csv("Kalra_Brain_Hippocampus.csv");kalra_Brain_Hippocampus$tissue ="Brain-Hippocampus"
+kalra_Brain_Hypothalamus<-read.csv("Kalra_Brain_Hypothalamus.csv");kalra_Brain_Hypothalamus$tissue ="Brain-Hypothalamus"
+kalra_Brain_Nucleus_accumbens_basal_ganglia<-read.csv("Kalra_Brain_Nucleus_accumbens_basal_ganglia.csv");kalra_Brain_Nucleus_accumbens_basal_ganglia$tissue="Brain-Nucleus Accumbens Basal Ganglia"
+kalra_Brain_Putamen_basal_ganglia<-read.csv("Kalra_Brain_Putamen_basal_ganglia.csv");kalra_Brain_Putamen_basal_ganglia$tissue="Brain-Putamen Basal Ganglia"
+kalra_Brain_Spinal_cord_cervical<-read.csv("Kalra_Brain_Spinal_cord_cervical_c-1.csv");kalra_Brain_Spinal_cord_cervical$tissue ="Brain-Spinal Cord Cervical"
+kalra_Brain_Substantia_nigra<-read.csv("Kalra_Brain_Substantia_nigra.csv");kalra_Brain_Substantia_nigra$tissue="Brain-Substantia Nigra"
+kalra_Breast_Tissue<-read.csv("Kalra_Breast_Mammary_Tissue.csv");kalra_Breast_Tissue$tissue="Breast-Mammary Tissue"
+kalra_Cells_Cultured_fibroblasts<-read.csv("Kalra_Cells_Cultured_fibroblasts.csv");kalra_Cells_Cultured_fibroblasts$tissue="Cells-Cultured Fibroblasts"
+kalra_Cells_EBV_transformed_lymphocytes<-read.csv("Kalra_Cells_EBV-transformed_lymphocytes.csv");kalra_Cells_EBV_transformed_lymphocytes$tissue="Cells-EBV Transformed Lymphocytes"
+kalra_Colon_Sigmoid<-read.csv("Kalra_Colon_Sigmoid.csv");kalra_Colon_Sigmoid$tissue="Colon-Sigmoid"
+kalra_Colon_Transverse<-read.csv("Kalra_Colon_Transverse.csv");kalra_Colon_Transverse$tissue="Colon-Transverse"
+kalra_Esophagus_Gastroesophageal_Junction<-read.csv("Kalra_Esophagus_Gastroesophageal_Junction.csv");kalra_Esophagus_Gastroesophageal_Junction$tissue="Esophagus-Gastroesophageal"
+kalra_Esophagus_Mucosa<-read.csv("Kalra_Esophagus_Mucosa.csv");kalra_Esophagus_Mucosa$tissue="Esophagus-Mucosa"
+kalra_Esophagus_Muscularis<-read.csv("Kalra_Esophagus_Muscularis.csv");kalra_Esophagus_Muscularis$tissue="Esophagus-Muscularis"
+kalra_Heart_Atrial_Appendage<-read.csv("Kalra_Heart_Atrial_Appendage.csv");kalra_Heart_Atrial_Appendage$tissue="Heart-Atrial Appendage"
+kalra_Heart_Left_Ventricle<-read.csv("Kalra_Heart_Left_Ventricle.csv");kalra_Heart_Left_Ventricle$tissue="Heart-Left Ventricle"
+kalra_Kidney_Cortex<-read.csv("Kalra_Kidney_Cortex.csv");kalra_Kidney_Cortex$tissue="Kidney Cortex"
+kalra_Liver<-read.csv("Kalra_Liver.csv");kalra_Liver$tissue="Liver"
+kalra_Lung<-read.csv("Kalra_Lung.csv");kalra_Lung$tissue="Lung"
+kalra_Minor_Salivary_Gland<-read.csv("Kalra_Minor_Salivary_Gland.csv");kalra_Minor_Salivary_Gland$tissue="Minor Salivary Gland"
+kalra_Muscle_Skeletal<-read.csv("Kalra_Muscle_Skeletal.csv");kalra_Muscle_Skeletal$tissue="Muscle Skeletal"
+kalra_Nerve_Tibial<-read.csv("Kalra_Nerve_Tibial.csv");kalra_Nerve_Tibial$tissue="Nerve-Tibial"
+kalra_Ovary<-read.csv("Kalra_Ovary.csv");kalra_Ovary$tissue="Ovary"
+kalra_Pancreas<-read.csv("Kalra_Pancreas.csv");kalra_Pancreas$tissue="Pancreas"
+kalra_Pituitary<-read.csv("Kalra_Pituitary.csv");kalra_Pituitary$tissue="Pituitary"
+kalra_Prostate<-read.csv("Kalra_Prostate.csv");kalra_Prostate$tissue="Prostate"
+kalra_Skin_Not_Sun_Exposed_Suprapubic<-read.csv("Kalra_Skin_Not_Sun_Exposed_Suprapubic.csv");kalra_Skin_Not_Sun_Exposed_Suprapubic$tissue="Skin-Not Sun Exposed Suprapubic"
+kalra_Skin_Sun_Exposed_Lower_leg<-read.csv("Kalra_Skin_Sun_Exposed_Lower_leg.csv");kalra_Skin_Sun_Exposed_Lower_leg$tissue="Skin-Sun Exposed Lower Leg"
+kalra_Small_Intestine_Terminal_Ileum<-read.csv("Kalra_Small_Intestine_Terminal_Ileum.csv");kalra_Small_Intestine_Terminal_Ileum$tissue="Small Intestine-Terminal Ileum"
+kalra_Spleen<-read.csv("Kalra_Spleen.csv");kalra_Spleen$tissue="Spleen"
+kalra_Stomach<-read.csv("Kalra_Stomach.csv");kalra_Stomach$tissue="Stomach"
+kalra_Testis<-read.csv("Kalra_Testis.csv");kalra_Testis$tissue="Testis"
+kalra_Thyroid<-read.csv("Kalra_Thyroid.csv");kalra_Thyroid$tissue="Thryoid"
+kalra_Uterus<-read.csv("Kalra_Uterus.csv");kalra_Uterus$tissue="Uterus"
+kalra_Vagina<-read.csv("Kalra_Vagina.csv");kalra_Vagina$tissue="Vagina"
+kalra_Whole_Blood<-read.csv("Kalra_Whole_Blood.csv");kalra_Whole_Blood$tissue="Whole Blood"
+
+#rbind them all
+all_tissues<-rbind(kalra_Adipose_Subcutaneous,
+                   kalra_Adipose_Visceral_Omentum,
+                   kalra_Adrenal_Gland,
+                   kalra_Artery_Aorta,
+                   kalra_Artery_Coronary,
+                   kalra_Artery_Tibial,
+                   kalra_Brain_Substantia_nigra,
+                   kalra_Breast_Tissue,
+                   kalra_Cells_Cultured_fibroblasts,
+                   kalra_Cells_EBV_transformed_lymphocytes,
+                   kalra_Colon_Sigmoid,
+                   kalra_Colon_Transverse,
+                   kalra_Esophagus_Gastroesophageal_Junction,
+                   kalra_Esophagus_Mucosa,
+                   kalra_Esophagus_Muscularis,
+                   kalra_Heart_Atrial_Appendage,
+                   kalra_Heart_Left_Ventricle,
+                   kalra_Kidney_Cortex,
+                   kalra_Liver,
+                   kalra_Lung,
+                   kalra_Minor_Salivary_Gland,
+                   kalra_Muscle_Skeletal,
+                   kalra_Nerve_Tibial,
+                   kalra_Ovary,
+                   kalra_Pancreas,
+                   kalra_Pituitary,
+                   kalra_Prostate,
+                   kalra_Skin_Not_Sun_Exposed_Suprapubic,
+                   kalra_Skin_Sun_Exposed_Lower_leg,
+                   kalra_Small_Intestine_Terminal_Ileum,
+                   kalra_Spleen,
+                   kalra_Stomach,
+                   kalra_Testis,
+                   kalra_Thyroid,
+                   kalra_Uterus,
+                   kalra_Vagina,
+                   kalra_Whole_Blood
+)
+
+#Read in the most stringent filter's gene names and select those from all tissues
+try<-right_join(all_tissues, gear_focus_innerandouterear_final, by="gene_name")
+
+ggplot(data=try, aes(gene_name, tissue, fill=zscore))+  geom_tile(aes(fill = zscore), colour = "grey")+ scale_fill_gradient2(low="darkblue", high="darkgreen", guide="colorbar",na.value="white") +
+   xlab("Gene") + ylab("Tissue")+ theme_cowplot(12)+ 
+  theme(plot.title = element_text(hjust = 0.5, face="bold", size=20),axis.text.y = element_text(angle =0, vjust = 0.5, size=10), axis.text.x = element_text(angle=90, vjust=1,hjust=1,size=10, face="italic"),axis.title.x=element_text(size=20, face="bold"), axis.title.y=element_text(size=20,face="bold")) 
+  
+ggsave("/home/projects/cio/metaxcan_results/heatplot.tiff", height=7, width=10, units='in', dpi=300)
+
+
