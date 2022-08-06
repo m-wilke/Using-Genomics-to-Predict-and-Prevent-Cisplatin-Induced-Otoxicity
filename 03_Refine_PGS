@@ -13,21 +13,21 @@
 install.packages("tidyverse")
 library(tidyverse)
  
-#Reading in gEAR data that gives the highest expression for genes in inner ear cell types 
+#Reading in gEAR data that gives expression data for genes in inner ear cell types 
 #https://umgear.org/p?s=7e32dd02 (download request provides expression files and see the bottom of this script to how gene_data_max_mean.csv was made)
 gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T) 
 
 #Merging with annotated unfiltered kalra data
 names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene"
-gear_prs<-merge(merged_react_kalra,gear_genes, by="gene")
+gear_prs<-merge(merged_react_kalra,gear_genes, by="gene") #13,360 unique genes and 1,121,809 unique SNPs
 
 #a)Filtering for inner and outer hair cells of the inner ear
 gear_prs_innerandoutercells<-filter(gear_prs, cell_type=="Hair_Cells") 
-distinct_innerandoutercells<-gear_prs_innerandoutercells %>% distinct(Name, .keep_all = TRUE) #removing duplicated rsIDs -> 235,609 SNPs
+unique(gear_prs_innerandoutercells$gene) #3,538 genes
 
 #b) Filtering for general inner ear cells
 gear_prs_general_innerear<-filter(gear_prs, cell_type !="Hair_Cells")
-distinct_general_innerear<-gear_prs_general_innerear %>% distinct(Name, .keep_all = TRUE) #removing duplicated rsIds #735,758 SNPs
+unique(gear_prs_general_innerear$gene) #9,885 genes
 
 #(iv) Increase relevance of genes to hearing and cisplatin cytotoxicity
 
@@ -46,11 +46,25 @@ prs_cyto_tissue<-prs_cyto %>% filter_at(vars(p.value_breast,p.value_lung_SCLC,p.
                                              p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
                                              p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<=0.05))
 
+unique(prs_cyto_tissue$gene) #12,584 genes and 1,006,822 SNPs
 
-#Combine with gEAR data, remove duplicated SNPs and filter for inner and outer hair cells
-merged_gear_cyto<-merge(gear_prs,prs_cyto_tissue, by="Name") 
-distinct_gear_cyto<-merged_gear_cyto%>% distinct(Name, .keep_all=TRUE) #735,261
-merged_gear_cyto_innerandoutercells<-filter(distinct_gear_cyto, cell_type=="Hair_Cells") #176,379
+#Combine with gEAR data and filter for inner and outer hair cells 
+
+#Work with a smaller subset of the data (as it can get quite large)
+final_filter_gear<-gear_prs%>%dplyr::select(Name,gene,cell_type)
+final_filter_cyto<-prs_cyto_tissue%>%dplyr::select(Name, gene)
+
+#Merge by gene and rsID
+merge_try2<-inner_join(final_filter_cyto, final_filter_gear, by=c("gene","Name"))
+unique(merge_try2$gene) #9,753 genes
+unique(merge_try2$Name) #872,867 rsIDs
+
+merged_gear_cyto_innerandoutercells<-filter(merge_try2, cell_type=="Hair_Cells")
+unique(merged_gear_cyto_innerandoutercells$Name)#215,430 SNPs
+unique(merged_gear_cyto_innerandoutercells$gene)#2,605 genes
+
+#Merge back to information for React
+kalra_gear_cyto_merged<-inner_join(merged_gear_cyto_innerandoutercells, merged_react_kalra, by="Name")
 
 ########################################################################################################################################################
 
