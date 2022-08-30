@@ -12,8 +12,8 @@ CHR=$1
 
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
-OUTPUT=/home/projects/cio/metaxcan_results
+REF=/home/projects/lab/reference_data/metaxcan/data
+OUTPUT=/home/projects/cisplatin/cio/metaxcan_results
 
 python3.6 $GWAS_TOOLS/gwas_summary_imputation.py \
         -by_region_file $REF/eur_ld.bed.gz \
@@ -42,8 +42,8 @@ for chr in {1..22}; do ./imputation_loop_correct_alleles.sh $chr; done
 #Kalra data set
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
-OUTPUT=/home/projects/cio/metaxcan_results
+REF=/home/projects/lab/reference_data/metaxcan/data
+OUTPUT=/home/projects/cisplatin/cio/metaxcan_results
 
 python3.8 $GWAS_TOOLS/gwas_summary_imputation_postprocess.py \
         -gwas_file $OUTPUT/harmonization_gwas/correct_alleles/kalra_harmonized_alleles_correct \
@@ -59,8 +59,8 @@ python3.8 $GWAS_TOOLS/gwas_summary_imputation_postprocess.py \
 #Kalra data set
 
 METAXCAN=/opt/github_repository/MetaXcan/software
-REF=/home/projects/reference_data/metaxcan/data/models/eqtl/mashr
-OUTPUT=/home/projects/cio/metaxcan_results
+REF=/home/projects/lab/reference_data/metaxcan/data/models/eqtl/mashr
+OUTPUT=/home/projects/cisplatin/cio/metaxcan_results
 
 #create a list of tissues
 #ls -1 $REF/*db | sed 's/\/projects\/reference_data\/metaxcan\/data\/models\/eqtl\/mashr//g' | sed 's/\///g' | sed 's/mashr_//g'  | sed 's/.db//g' > $OUTPUT/spredixcan/eqtl/correct_alleles/gtex_tissues_v8.txt
@@ -87,8 +87,8 @@ done < $OUTPUT/spredixcan/eqtl/correct_alleles/gtex_tissues_v8.txt
 #Kalra
 
 METAXCAN=/opt/github_repository/MetaXcan/software
-REF=/home/projects/reference_data/metaxcan/data
-OUTPUT=/home/projects/cio/metaxcan_results
+REF=/home/projects/lab/reference_data/metaxcan/data
+OUTPUT=/home/projects/cisplatin/cio/metaxcan_results
 
 
 python3.8 $METAXCAN/SMulTiXcan.py \
