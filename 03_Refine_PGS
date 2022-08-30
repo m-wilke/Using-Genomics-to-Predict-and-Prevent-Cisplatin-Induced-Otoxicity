@@ -15,7 +15,7 @@ library(tidyverse)
  
 #Reading in gEAR data that gives expression data for genes in inner ear cell types 
 #https://umgear.org/p?s=7e32dd02 (download request provides expression files and see the bottom of this script to how gene_data_max_mean.csv was made)
-gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T) 
+gear_genes<-read.csv("/home/projects/cisplatin/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T) 
 
 #Merging with annotated unfiltered kalra data
 names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene"
@@ -35,7 +35,7 @@ install.packages("tidyverse")
 library(tidyverse)
  
 #Reading in the cisplatin cytotoxicity data -> see how merge_with_genes.csv was made at the bottom of the script
-cyto <-read.csv("/home/projects/summer_students_2021/cio_vaibhav/Mackenzie/merge_with_genes.csv", header=TRUE) %>%
+cyto <-read.csv("/home/projects/lab/summer_students_2021/cio_vaibhav/Mackenzie/merge_with_genes.csv", header=TRUE) %>%
   dplyr::rename(gene=gene_name)
 
 #Merging with annotation unfiltered kalra data 
@@ -84,9 +84,9 @@ values<- getLDS(attributes=c("ensembl_gene_id"),
        attributesL=c("hgnc_symbol"), martL=mart1)
 
 #Upload murine inner ear gene expression data
-genes <- fread("/home/projects/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_genes.tab", header=T)
-expression <- fread("/home/projects/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_expression.tab", header=T)
-observations <- fread("/home/projects/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_observations.tab", header=T)
+genes <- fread("/home/projects/lab/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_genes.tab", header=T)
+expression <- fread("/home/projects/lab/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_expression.tab", header=T)
+observations <- fread("/home/projects/lab/reference_data/inner_ear_scrnaseq/p7mouse_cochlea_scRNAseq_HertzanoAment_observations.tab", header=T)
 
 #Remove plus signs
 observations$cell_type<-gsub("\\+",".",observations$cell_type)
@@ -138,6 +138,8 @@ for (i in 1:lengthOfData){
 }
 
 ###### Creating the cytotoxicity data file used in filter (iv) (in RStudio) ############
+
+#Set working directory to /home/projects/lab/summer_students_2021/cio_vaibhav/Mackenzie
 
 library(data.table)
 library(readxl)
