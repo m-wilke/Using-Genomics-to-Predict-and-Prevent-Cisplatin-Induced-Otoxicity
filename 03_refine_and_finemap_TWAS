@@ -10,9 +10,9 @@
 #Kalra data set
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
-OUTPUT=/home/projects/cio/focus
-DATA=/home/projects/cio/metaxcan_results/processed_summary_imputation
+REF=/home/projects/lab/reference_data/metaxcan/data
+OUTPUT=/home/projects/cisplatin/cio/focus
+DATA=/home/projects/cisplatin/cio/metaxcan_results/processed_summary_imputation
 
 mkdir -p $OUTPUT
 
@@ -32,20 +32,20 @@ library(reshape)
 
 ##Changing headers to what FOCUS needs for summary stats file
 
-y<-read.table(gzfile("/home/projects/cio/focus/kalra_imputed_focus_correct_alleles.txt.gz"),header=T, sep="\t")
+y<-read.table(gzfile("/home/projects/cisplatin/cio/focus/kalra_imputed_focus_correct_alleles.txt.gz"),header=T, sep="\t")
 
 y$chromosome<-gsub("chr","",as.character(y$chromosome))
   merge_final<-y %>% dplyr::select(SNP,chromosome, position,effect_allele , non_effect_allele,frequency, sample_size, zscore, pvalue, effect_size) %>%
    rename(CHR=chromosome,BP=position,A1=effect_allele,A2=non_effect_allele,FRQ=frequency,N=sample_size,Z=zscore,P=pvalue BETA=effect_size) 
 
 #Making new text file with changes to use as input in FOCUS analyses
-write.table(merge_final, file="/home/projects/cio/focus/imputed_kalra_withrsIDs_focus.txt", append = FALSE, sep ="\t", quote=FALSE,
+write.table(merge_final, file="/home/projects/cisplatin/cio/focus/imputed_kalra_withrsIDs_focus.txt", append = FALSE, sep ="\t", quote=FALSE,
             row.names = FALSE, col.names = TRUE)
 
 #Exclude the MHC region on chrm 6 for FOCUS to run (6:28,477,797-33,448,354) found from https://www.ncbi.nlm.nih.gov/grc/human/regions/MHC?asm=GRCh37
 chrm6<-subset(merge_final, merge_final$CHR==6)
 chrm6_exclude<-subset(chrm6,BP<=28477797 | BP>=33448354)
-write.table(chrm6_exclude, file="/home/projects/cio/focus/imputed_kalra_withrsIDs_focus_chrm6_without_mhc.txt", append = FALSE, sep ="\t", quote=FALSE,
+write.table(chrm6_exclude, file="/home/projects/cisplatin/cio/focus/imputed_kalra_withrsIDs_focus_chrm6_without_mhc.txt", append = FALSE, sep ="\t", quote=FALSE,
     row.names = FALSE, col.names = TRUE)
 
 #c) Running FOCUS fine-mapping analyses (in Linux)
@@ -53,8 +53,8 @@ write.table(chrm6_exclude, file="/home/projects/cio/focus/imputed_kalra_withrsID
 # Here you could write HPC directives if running on a compute cluster
 
 #FOCUS is located here: /opt/github_repository/focus
-REF=/home/projects/reference_data/focus
-OUTPUT=/home/projects/cio/focus
+REF=/home/projects/lab/reference_data/focus
+OUTPUT=/home/projects/cisplatin/cio/focus
 
 focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.1 $REF/focus.db --chr 1 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr1
 focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.2 $REF/focus.db --chr 2 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr2
@@ -80,7 +80,7 @@ focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_pl
 focus finemap $OUTPUT/imputed_kalra_withrsIDs_focus.txt $REF/1000G_EUR_Phase3_plink/1000G.EUR.QC.22 $REF/focus.db --chr 22 --p-threshold 0.000001 --out $OUTPUT/focus_results_06/kalra_focus.chr22
 
 #Then concatenate all the output files from finemapping analyses
-cd /home/projects/cio/focus/focus_results_06
+cd /home/projects/cisplatin/cio/focus/focus_results_06
 cat kalra_focus.chr1 kalra_focus.chr2 kalra_focus.chr3 kalra_focus.chr4 kalra_focus.chr5 kalra_focus.chr6 kalra_focus.chr7 kalra_focus.chr8 kalra_focus.chr9 kalra_focus.chr10 kalra_focus.chr11 kalra_focus.chr12 kalra_focus.chr13 kalra_focus.chr14 kalra_focus.chr15 kalra_focus.chr16 kalra_focus.chr17 kalra_focus.chr18 kalra_focus.chr19 kalra_focus.chr20 kalra_focus.chr21 kalra_focus.chr22 > kalra_focus_allchr.tsv
 
 
@@ -88,8 +88,8 @@ cat kalra_focus.chr1 kalra_focus.chr2 kalra_focus.chr3 kalra_focus.chr4 kalra_fo
 library(tidyverse)
 library(dplyr)
 
-focus_results<-read.table(file = "/home/projects/cio/focus/focus_results_06/kalra_focus_allchr.tsv", sep = '\t', header = TRUE)
-smultixcan_results<-read.table("/home/projects/cio/metaxcan_results/smultixcan/eqtl/correct_alleles/kalra_smultixcan.txt", sep='\t', header=TRUE)
+focus_results<-read.table(file = "/home/projects/cisplatin/cio/focus/focus_results_06/kalra_focus_allchr.tsv", sep = '\t', header = TRUE)
+smultixcan_results<-read.table("/home/projects/cisplatin/cio/metaxcan_results/smultixcan/eqtl/correct_alleles/kalra_smultixcan.txt", sep='\t', header=TRUE)
 
 focus_results<-rename(focus_results,gene_name = "mol_name")
   merge_f_s<-inner_join(focus_results,smultixcan_results, by="gene_name",copy=FALSE) 
@@ -127,7 +127,7 @@ library(dplyr)
  
 #Reading in gEAR data that gives the highest expression for genes in inner ear cell types 
 #https://umgear.org/p?s=7e32dd02 (download request provides a gear_genes_expression folder in which the gene_data_max_mean.csv is located)
-gear_genes<-read.csv("/home/projects/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T)
+gear_genes<-read.csv("/home/projects/cisplatin/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T)
 
 #Merging inner ear data with credible genes that have P<0.05 in S-MultiXcan
 names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene_name"
@@ -154,7 +154,7 @@ names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene_name"
 #Finding genes that show a relationship with cytotoxicity data (pvalue<0.05)
 
 #Reading in the cytotoxicity data -> to see how merge_with_genes.csv was made, see the bottom of 03_Refine_PGS on this repository         
-cyto1<- read.csv("/home/projects/summer_students_2021/cio_vaibhav/Mackenzie/merge_with_genes.csv", header=TRUE) 
+cyto1<- read.csv("/home/projects/lab/summer_students_2021/cio_vaibhav/Mackenzie/merge_with_genes.csv", header=TRUE) 
 
 #Merging significant cytotoxicity data and credible FOCUS data 
 merged_focus_cyto<-merge(cred_0.05_final,cyto1,by.x="gene_name",by.y="gene_name") #147 unique genes
@@ -204,12 +204,12 @@ gear_focus_innerandouterear_final$FOCUS_pip.x<-as.numeric(gear_focus_innerandout
 ggplot(data=gear_focus_innerandouterear_final, aes(x=gene_name, y=FOCUS_zscore.x, fill=Differential_expression))+ ggtitle("Gene Expression in Genes Expressed in Inner/Outer Hair Cells and Correlated with Cisplatin Cytotoxicity") +
   geom_bar(stat="identity") + theme_minimal() +xlab("Genes") + ylab("Z-score") +theme(axis.text.x = element_text(angle = 90,face="italic"),plot.title = element_text(size=10, hjust = 0.5)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + guides(fill=guide_legend(title="Differential Expression"))
-ggsave("/home/projects/cio/metaxcan_results/expression_plots_4geneset.pdf", height=4, width=8, units='in', dpi=300)
+ggsave("/home/projects/cisplatin/cio/metaxcan_results/expression_plots_4geneset.pdf", height=4, width=8, units='in', dpi=300)
 
 
 #Heatplot of inner and outer ear cells/cytotoxicity correlation dataset:
 
-setwd("/home/projects/cio/metaxcan_results/spredixcan/eqtl/correct_alleles")
+setwd("/home/projects/cisplatin/cio/metaxcan_results/spredixcan/eqtl/correct_alleles")
 
 kalra_Adipose_Subcutaneous<-read.csv("Kalra_Adipose_Subcutaneous.csv");kalra_Adipose_Subcutaneous$tissue="Adipose-Subcutaneous"
 kalra_Adipose_Visceral_Omentum<-read.csv("Kalra_Adipose_Visceral_Omentum.csv");kalra_Adipose_Visceral_Omentum$tissue="Adipose-Visceral Omentum"
@@ -308,6 +308,6 @@ ggplot(data=try, aes(gene_name, tissue, fill=zscore))+  geom_tile(aes(fill = zsc
    xlab("Gene") + ylab("Tissue")+ theme_cowplot(12)+ 
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=20),axis.text.y = element_text(angle =0, vjust = 0.5, size=10), axis.text.x = element_text(angle=90, vjust=1,hjust=1,size=10, face="italic"),axis.title.x=element_text(size=20, face="bold"), axis.title.y=element_text(size=20,face="bold")) 
   
-ggsave("/home/projects/cio/metaxcan_results/heatplot.tiff", height=7, width=10, units='in', dpi=300)
+ggsave("/home/projects/cisplatin/cio/metaxcan_results/heatplot.tiff", height=7, width=10, units='in', dpi=300)
 
 
