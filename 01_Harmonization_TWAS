@@ -8,9 +8,9 @@
 #Kalra data set
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
-DATA=/home/projects/cio/summary_stats/hearing_loss
-OUTPUT=/home/projects/cio/metaxcan_results/harmonization_gwas
+REF=/home/projects/lab/reference_data/metaxcan/data
+DATA=/home/projects/cisplatin/cio/summary_stats/hearing_loss
+OUTPUT=/home/projects/cisplatin/cio/metaxcan_results/harmonization_gwas
 
 mkdir -p $OUTPUT
 
