@@ -7,7 +7,7 @@
 # Here you could write HPC directives if running on a compute cluster
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
+REF=/home/projects/lab/reference_data/metaxcan/data
 DATA=/home/projects/cisplatin/cio/summary_stats/hearing_loss
 OUTPUT=/home/projects/cisplatin/cio/PRS_collab/kalra
 
@@ -33,8 +33,8 @@ python3.8 $GWAS_TOOLS/gwas_parsing.py \
 #/bin/bash
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
-DATA=/home/projects/cio/cisplatin/PRS_collab/kalra
+REF=/home/projects/lab/reference_data/metaxcan/data
+DATA=/home/projects/cisplatin/cio/PRS_collab/kalra
 OUTPUT=/home/projects/cisplatin/cio/PRS_collab/kalra
 
 
@@ -51,8 +51,8 @@ python3.8 $GWAS_TOOLS/gwas_parsing.py \
 # Here you could write HPC directives if running on a compute cluster
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
-DATA=/home/projects/summer_students_2021/cio_vaibhav/results
+REF=/home/projects/lab/reference_data/metaxcan/data
+DATA=/home/projects/lab/summer_students_2021/cio_vaibhav/results
 OUTPUT=/home/projects/cisplatin/cio/PRS_collab/meijer
 
 mkdir -p $OUTPUT
@@ -82,7 +82,7 @@ python3.8 $GWAS_TOOLS/gwas_parsing.py \
 #/bin/bash
 
 GWAS_TOOLS=/opt/github_repository/summary-gwas-imputation/src
-REF=/home/projects/reference_data/metaxcan/data
+REF=/home/projects/lab/reference_data/metaxcan/data
 DATA=/home/projects/cisplatin/cio/PRS_collab/meijer
 OUTPUT=/home/projects/cisplatin/cio/PRS_collab/meijer
 
