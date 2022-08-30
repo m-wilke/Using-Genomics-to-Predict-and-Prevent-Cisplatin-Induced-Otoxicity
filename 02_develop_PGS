@@ -6,10 +6,10 @@ A) Creating .ma file for input into SBayesR - done in RStudio
 install.packages("tidyverse")
 library(tidyverse)
 
-kalra_harmonized_hg19 <- read.delim("/home/projects/cio/PRS_collab/kalra/kalra_liftdown_to_hg19.txt") %>% 
+kalra_harmonized_hg19 <- read.delim("/home/projects/cisplatin/cio/PRS_collab/kalra/kalra_liftdown_to_hg19.txt") %>% 
   select(variant_id,effect_allele,non_effect_allele,frequency,effect_size,standard_error,pvalue,sample_size) %>%
   dplyr::rename(SNP=variant_id, A1=effect_allele,A2=non_effect_allele,freq=frequency,b=effect_size,se=standard_error,p=pvalue,N=sample_size) %>% 
-  write.table("/home/projects/cio/PRS_collab/kalra/sbayesr/kalra_hg19.ma", append = FALSE, sep ="\t", quote=FALSE,
+  write.table("/home/projects/cisplatin/cio/PRS_collab/kalra/sbayesr/kalra_hg19.ma", append = FALSE, sep ="\t", quote=FALSE,
               row.names = FALSE, col.names = TRUE)
               
 B) SBayesR - done in Linux
@@ -18,14 +18,14 @@ B) SBayesR - done in Linux
 #/bin/bash
 /opt/gctb_2.03beta_Linux/gctb --sbayes R 
   --robust 
-  --mldm /home/projects/reference_data/sbayesr/ukb_50k_bigset_2.8M/mldm_uk2.8M.txt 
+  --mldm /home/projects/lab/reference_data/sbayesr/ukb_50k_bigset_2.8M/mldm_uk2.8M.txt 
   --pi 0.95,0.02,0.02,0.01 
   --gamma 0.0,0.01,0.1,1 
-  --gwas-summary /home/projects/cio/PRS_collab/kalra/sbayesr/kalra_hg19.ma 
+  --gwas-summary /home/projects/cisplatin/cio/PRS_collab/kalra/sbayesr/kalra_hg19.ma 
   --chain-length 10000  
   --burn-in 2000 
   --out-freq 10  
-  --out /home/projects/cio/PRS_collab/kalra/sbayesr/test
+  --out /home/projects/cisplatin/cio/PRS_collab/kalra/sbayesr/test
   
   
 C) Annotation of SBayesR output
@@ -64,10 +64,10 @@ library(tidyverse)
 library(splitstackshape)
 
 #SBayesR output
-kalra_sbayesr_hg19<- read.csv("/home/projects/cio/PRS_collab/kalra/sbayesr/test.snpRes", sep="") #2,753,914 SNPs
+kalra_sbayesr_hg19<- read.csv("/home/projects/cisplatin/cio/PRS_collab/kalra/sbayesr/test.snpRes", sep="") #2,753,914 SNPs
 
 #VEP output based on SBayesR output
-Kalra_vep_annotation_combined.txt <- read.table("/home/projects/cio/annotation/Kalra_vep_annotation_combined.txt", quote="\"") #n=3,325,287
+Kalra_vep_annotation_combined.txt <- read.table("/home/projects/cisplatin/cio/annotation/Kalra_vep_annotation_combined.txt", quote="\"") #n=3,325,287
 
 Kalra_vep_annotation<-Kalra_vep_annotation_combined.txt%>%
   dplyr::rename(ensembl_gene_id=V4, Name=V1, gene=V14) %>%
