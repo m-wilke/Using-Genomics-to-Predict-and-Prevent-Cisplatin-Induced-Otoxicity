@@ -13,7 +13,7 @@ no_filter_react_kalra$nCase=90710
 no_filter_react_kalra$nControl=255925
 no_filter_react_kalra_unique_snps<-no_filter_react_kalra %>% distinct(SNP, .keep_all = TRUE)#2,753,914
 
-write.table(no_filter_react_kalra_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/kalra_genes_prs_no_filter.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(no_filter_react_kalra_unique_snps, file="/home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_genes_prs_no_filter.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
 
 #(ii) Inner and outer hair cells of the inner ear
@@ -23,7 +23,7 @@ innerandouter_react_kalra$nCase=90710
 innerandouter_react_kalra$nControl=255925
 innerandouter_react_kalra_unique_snps<-innerandouter_react_kalra%>%distinct(SNP,.keep_all=TRUE) #288,135 SNPs 
 
-write.table(innerandouter_react_kalra_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/kalra_innerandouter_earcells.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(innerandouter_react_kalra_unique_snps, file="/home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_innerandouter_earcells.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
             
 #(iii) General inner ear cells
@@ -33,7 +33,7 @@ general_innerear_react_kalra$nCase=90710
 general_innerear_react_kalra$nControl=255925
 general_innerear_react_kalra_unique_snps<-general_innerear_react_kalra %>% distinct(SNP, .keep_all = TRUE)#875,637 SNPs
 
-write.table(general_innerear_react_kalra_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/kalra_general_innerear.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(general_innerear_react_kalra_unique_snps, file="/home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_general_innerear.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
             
 #(iv) Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
@@ -44,18 +44,18 @@ react_gear_cyto_innerandoutercells$nControl=255925
 react_gear_cyto_innerandoutercells_unique_snps<-react_gear_cyto_innerandoutercells %>% distinct(SNP, .keep_all = TRUE)#215,430 SNPs
 
 
-write.table(react_gear_cyto_innerandoutercells_unique_snps, file="/home/projects/cio/PRS_collab/kalra/React/merged_cyto_innerandouter.txt", append = FALSE, sep ="\t", quote=FALSE, 
+write.table(react_gear_cyto_innerandoutercells_unique_snps, file="/home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/merged_cyto_innerandouter.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
 
 #Meijer data
 #Adding rsIDs to the hg19 Meijer data for React
-meijer_without_rsID<-read.table ("/home/projects/cio/PRS_collab/meijer/meijer_liftdown_to_hg19.txt", header=TRUE); #7,378,757 SNPs
+meijer_without_rsID<-read.table ("/home/projects/cisplatin/cio/PRS_collab/meijer/meijer_liftdown_to_hg19.txt", header=TRUE); #7,378,757 SNPs
 meijer_without_rsID$nCase=168;meijer_without_rsID$nControl=222
 
 #This file has chromosome, start, end and rsID so I need to make a value of chr:pos to merge (for both the hg19 input and meijer data)
-hg19_snps<-fread("/home/projects/reference_data/metaxcan/data/ucsc/snp150_hg19_parsed.txt.gz")
+hg19_snps<-fread("/home/projects/lab/reference_data/metaxcan/data/ucsc/snp150_hg19_parsed.txt.gz")
 hg19_snps$marker_pos<-paste(hg19_snps$chromosome, hg19_snps$start, sep=":")
-write.table(hg19_snps, file="/home/projects/cio/PRS_collab/hg19_snps.txt", append = FALSE, sep ="\t", quote=FALSE,
+write.table(hg19_snps, file="/home/projects/cisplatin/cio/PRS_collab/hg19_snps.txt", append = FALSE, sep ="\t", quote=FALSE,
             row.names = FALSE, col.names = TRUE)
 
 meijer_without_rsID$marker_pos<-paste(meijer_without_rsID$chromosome, meijer_without_rsID$position, sep=":")
@@ -70,7 +70,7 @@ meijer_with_snps<-meijer_with_snps %>% dplyr::select(SNP,chromosome.y, position,
 
 meijer_final<-meijer_with_snps%>%filter(SE!=-Inf) #Removing the se values that are infinity as this may interrupt the program #7,527,203
 
-write.table(meijer_final, file="/home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt", append = FALSE, sep ="\t", quote=FALSE,
+write.table(meijer_final, file="/home/projects/cisplatin/cio/PRS_collab/meijer/React/React_july2022/meijer_hg19.txt", append = FALSE, sep ="\t", quote=FALSE,
             row.names = FALSE, col.names = TRUE)
 
 
@@ -78,57 +78,57 @@ write.table(meijer_final, file="/home/projects/cio/PRS_collab/meijer/React/meije
 #https://github.com/Paschou-Lab/ReAct#Group-PRS
 
 #(i)General hearing loss genes (unfiltered)
-echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
-Base /home/projects/cio/PRS_collab/kalra/React/kalra_genes_prs_no_filter.txt
-Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_kalra_no_filter.out
+echo -e "Target /home/projects/cisplatin/cio/PRS_collab/meijer/React/React_july2022/meijer_hg19.txt
+Base /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_genes_prs_no_filter.txt
+Output /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/GrpPRS_kalra_no_filter.out
 Pthres 1
 nCase 168
 nControl 222
 nBase 90710,255925
 OverlapCases 0
-OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_kalra_no_filter.grpprs
+OverlapControls 0" > /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/par_kalra_no_filter.grpprs
 
 #Second Step: do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_kalra_no_filter.grpprs
 
 #(ii)Genes expressed in the inner and outer hair cells of the inner ear
-echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
-Base /home/projects/cio/PRS_collab/kalra/React/kalra_innerandouter_earcells.txt
-Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_kalra_innerandouter.out
+echo -e "Target /home/projects/cisplatin/cio/PRS_collab/meijer/React/React_july2022/meijer_hg19.txt
+Base /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_innerandouter_earcells.txt
+Output /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/GrpPRS_kalra_innerandouter.out
 Pthres 1
 nCase 168
 nControl 222
 nBase 90710,255925
 OverlapCases 0
-OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_kalra_innerandouter.grpprs
+OverlapControls 0" > /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/par_kalra_innerandouter.grpprs
 
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_kalra_innerandouter.grpprs
 
 #(iii) Genes expressed in the general inner ear cells
-echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
-Base /home/projects/cio/PRS_collab/kalra/React/kalra_general_innerear.txt
-Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_kalra_general_innerear.out
+echo -e "Target /home/projects/cisplatin/cio/PRS_collab/meijer/React/React_july2022/meijer_hg19.txt
+Base /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_general_innerear.txt
+Output /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/GrpPRS_kalra_general_innerear.out
 Pthres 1
 nCase 168
 nControl 222
 nBase 90710,255925
 OverlapCases 0
-OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_kalra_general_innerear.grpprs
+OverlapControls 0" > /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/par_kalra_general_innerear.grpprs
 
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_kalra_general_innerear.grpprs
 
 #(iv) Genes expressed in the inner and outer hair cells and whose expression is correlated with cisplatin cytotoxicity
-echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
-Base /home/projects/cio/PRS_collab/kalra/React/merged_cyto_innerandouter.txt
-Output /home/projects/cio/PRS_collab/kalra/React/GrpPRS_cyto_innerandouter.out
+echo -e "Target /home/projects/cisplatin/cio/PRS_collab/meijer/React/React_july2022/meijer_hg19.txt
+Base /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/merged_cyto_innerandouter.txt
+Output /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/GrpPRS_cyto_innerandouter.out
 Pthres 1
 nCase 168
 nControl 222
 nBase 90710,255925
 OverlapCases 0
-OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_cyto_innerandouter.grpprs
+OverlapControls 0" > /home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/par_cyto_innerandouter.grpprs
 
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_cyto_innerandouter.grpprs
@@ -137,7 +137,7 @@ OverlapControls 0" > /home/projects/cio/PRS_collab/kalra/React/par_cyto_innerand
 
 #1) Prepping the files in RStudio
 
-cherny<- read.delim("/home/projects/cio/summary_stats/hearing_loss/PGS000762_Cherny.txt", comment.char="#") #100,325 SNPs
+cherny<- read.delim("/home/projects/cisplatin/cio/summary_stats/hearing_loss/PGS000762_Cherny.txt", comment.char="#") #100,325 SNPs
 cherny$chr_name<-paste( "chr",cherny$chr_name, sep="")
 cherny$marker_pos<-paste(cherny$chr_name, cherny$chr_position, sep=":")
 
@@ -155,19 +155,19 @@ final_cherny<-final_cherny %>%
   dplyr::select(SNP,chr_name, chr_position, effect_allele, other_allele, P, effect_weight, SE, nCase, nControl) %>% 
   dplyr::rename(CHR=chr_name, BP=chr_position, A1=effect_allele, A2=other_allele, Beta=effect_weight) #93,622 SNPs
 
-write.table(final_cherny, file="/home/projects/cio/PRS_collab/cherny/cherny_final.txt", append=FALSE,sep="\t", quote=FALSE, row.names=FALSE, col.names=T)
+write.table(final_cherny, file="/home/projects/cisplatin/cio/PRS_collab/cherny/cherny_final.txt", append=FALSE,sep="\t", quote=FALSE, row.names=FALSE, col.names=T)
 
 #2) Running ReACt analyses in Linux
 
-echo -e "Target /home/projects/cio/PRS_collab/meijer/React/meijer_hg19.txt
-Base /home/projects/cio/PRS_collab/cherny/cherny_final.txt
-Output /home/projects/cio/PRS_collab/cherny/GrpPRS_cherny.out
+echo -e "Target /home/projects/cisplatin/cio/PRS_collab/meijer/React/React_july2022/meijer_hg19.txt
+Base /home/projects/cisplatin/cio/PRS_collab/cherny/cherny_final.txt
+Output /home/projects/cisplatin/cio/PRS_collab/cherny/july2022/GrpPRS_cherny.out
 Pthres 1
 nCase 168
 nControl 222
 nBase 87056,163333
 OverlapCases 0
-OverlapControls 0" > /home/projects/cio/PRS_collab/cherny/par_cherny.grpprs
+OverlapControls 0" > /home/projects/cisplatin/cio/PRS_collab/cherny/july2022/par_cherny.grpprs
 
 #Do this command in the folder that you want the output files to be in
 /opt/ReAct-main/GrpPRS par_cherny.grpprs
