@@ -17,7 +17,7 @@ write.table(no_filter_react_kalra_unique_snps, file="/home/projects/cisplatin/ci
             row.names = FALSE, col.names = T) 
 
 #(ii) Inner and outer hair cells of the inner ear
-innerandouter_react_kalra<-distinct_innerandoutercells %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE)
+innerandouter_react_kalra<-gear_prs_innerandoutercells %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE)
 innerandouter_react_kalra<-innerandouter_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 innerandouter_react_kalra$nCase=90710
 innerandouter_react_kalra$nControl=255925
@@ -27,7 +27,7 @@ write.table(innerandouter_react_kalra_unique_snps, file="/home/projects/cisplati
             row.names = FALSE, col.names = T) 
             
 #(iii) General inner ear cells
-general_innerear_react_kalra<-distinct_general_innerear %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE) 
+general_innerear_react_kalra<-gear_prs %>% dplyr::select(Name,Chrom, Position, A1, A2, pvalue, A1Effect, SE) 
 general_innerear_react_kalra<-general_innerear_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 general_innerear_react_kalra$nCase=90710
 general_innerear_react_kalra$nControl=255925
