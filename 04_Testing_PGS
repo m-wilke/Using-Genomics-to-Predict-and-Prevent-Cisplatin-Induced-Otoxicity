@@ -31,7 +31,7 @@ general_innerear_react_kalra<-distinct_general_innerear %>% dplyr::select(Name,C
 general_innerear_react_kalra<-general_innerear_react_kalra %>% dplyr::rename(SNP=Name, CHR=Chrom, BP=Position, Beta=A1Effect, P=pvalue)
 general_innerear_react_kalra$nCase=90710
 general_innerear_react_kalra$nControl=255925
-general_innerear_react_kalra_unique_snps<-general_innerear_react_kalra %>% distinct(SNP, .keep_all = TRUE)#875,637 SNPs
+general_innerear_react_kalra_unique_snps<-general_innerear_react_kalra %>% distinct(SNP, .keep_all = TRUE)#1,141,809 SNPs
 
 write.table(general_innerear_react_kalra_unique_snps, file="/home/projects/cisplatin/cio/PRS_collab/kalra/React/React_july2022/kalra_general_innerear.txt", append = FALSE, sep ="\t", quote=FALSE, 
             row.names = FALSE, col.names = T) 
