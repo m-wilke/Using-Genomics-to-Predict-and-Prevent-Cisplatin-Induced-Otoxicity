@@ -18,16 +18,15 @@ library(tidyverse)
 gear_genes<-read.csv("/home/projects/cisplatin/cio/focus/urim_ear_data/gene_data_max_mean.csv", header=T) 
 
 #Merging with annotated unfiltered kalra data
-names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene"
-gear_prs<-merge(merged_react_kalra,gear_genes, by="gene") #13,360 unique genes and 1,121,809 unique SNPs
+names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene" #14,192 unique genes
+gear_prs<-inner_join(merged_react_kalra,gear_genes, by="gene")
 
-#a)Filtering for inner and outer hair cells of the inner ear
+#a) Filtering for general inner ear cells (all cochlear cell types including hair cells)
+unique(gear_prs$gene) #13,360 genes
+
+#b)Filtering for inner and outer hair cells of the inner ear
 gear_prs_innerandoutercells<-filter(gear_prs, cell_type=="Hair_Cells") 
 unique(gear_prs_innerandoutercells$gene) #3,538 genes
-
-#b) Filtering for general inner ear cells
-gear_prs_general_innerear<-filter(gear_prs, cell_type !="Hair_Cells")
-unique(gear_prs_general_innerear$gene) #9,885 genes
 
 #(iv) Increase relevance of genes to hearing and cisplatin cytotoxicity
 
