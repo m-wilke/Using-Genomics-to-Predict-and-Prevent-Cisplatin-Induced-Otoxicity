@@ -91,12 +91,21 @@ library(dplyr)
 focus_results<-read.table(file = "/home/projects/cisplatin/cio/focus/focus_results_06/kalra_focus_allchr.tsv", sep = '\t', header = TRUE)
 smultixcan_results<-read.table("/home/projects/cisplatin/cio/metaxcan_results/smultixcan/eqtl/correct_alleles/kalra_smultixcan.txt", sep='\t', header=TRUE)
 
-focus_results<-rename(focus_results,gene_name = "mol_name")
+#Remove invalid gene names from focus results:
+ n_occur<- data.frame(table(focus_results$mol_name))# how I found what genes were seen more than once 
+    focus_results_cred<-filter(focus_results, mol_name !="mol_name")
+    focus_results_cred<-filter(focus_results, mol_name !="NULL") #2,315 unique genes in FOCUS
+    
+#Seeing how many genes have P<0.05 in Smultixcan
+smultixcan_0.05<-filter(smultixcan_results, pvalue<=0.05) #2,491 genes
+
+#Merging smultixcan and FOCUS results by gene name
+focus_results<-rename(focus_results_cred,gene_name = "mol_name")
   merge_f_s<-inner_join(focus_results,smultixcan_results, by="gene_name",copy=FALSE) 
 
 #Filtering what genes have p<0.05 in S-MultiXcan results and are credible based on fine-mapping results
 sig_0.05<-subset(merge_f_s,pvalue <=0.05)
-  credible_0.05<-subset(sig_0.05, in_cred_set>=1) #178 credible genes with pvalue<0.05-> found from unique(cred_0.05_final$gene_name)
+  credible_0.05<-subset(sig_0.05, in_cred_set>=1) #178 credible genes with pvalue<0.05-> found with unique(cred_0.05_final$gene_name)
 
 #Formatting column names
 cred_0.05_final <-credible_0.05 %>% dplyr::select(gene_name, chrom, tissue, twas_z, pip, t_i_best, z_mean, pvalue, in_cred_set)
@@ -131,9 +140,8 @@ gear_genes<-read.csv("/home/projects/cisplatin/cio/focus/urim_ear_data/gene_data
 
 #Merging inner ear data with credible genes that have P<0.05 in S-MultiXcan
 names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene_name"
-    merged_gear_focus<-inner_join(cred_0.05_final,gear_genes, by="gene_name") #807 genes
+    merged_gear_focus<-inner_join(cred_0.05_final,gear_genes, by="gene_name") #807 genes -> this is all the cochlear cell genes (including hair cells)
         filtered_gear_focus_innerandoutercells<-filter(merged_gear_focus, cell_type=="Hair_Cells") # 271 genes
-           filtered_gear_focus_general_innerear<-filter(merged_gear_focus, cell_type !="Hair_Cells") #536 genes
            
 #Finding gene that has highest pip value (i.e. Rank=1) as the one to take z_score information from
 #FOCUS gives multiple entries per gene for zscore, pip, tissue, etc          
@@ -141,13 +149,13 @@ names(gear_genes)[names(gear_genes) == "human_gene_name"] <- "gene_name"
       filtered_gear_focus_innerandoutercells %>% 
          dplyr::select(gene_name,FOCUS_pip,FOCUS_zscore) %>%
              group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip))) ->filtered_gear_focus_innerandoutercells
-                 filtered_gear_focus_highestpip_innerandoutercells<-subset(filtered_gear_focus_innerandoutercells,Rank==1)
+                 filtered_gear_focus_highestpip_innerandoutercells<-subset(filtered_gear_focus_innerandoutercells,Rank==1) #47 genes
            
 #General inner ear cells
-     filtered_gear_focus_general_innerear<-filtered_gear_focus_general_innerear %>% 
+     filtered_gear_focus_general_innerear<-merged_gear_focus %>% 
           dplyr::select(gene_name,FOCUS_pip,FOCUS_zscore)%>% 
              group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip))) 
-                 filtered_gear_focus_highestpip_general_innerear<-subset(filtered_gear_focus_general_innerear,Rank==1)
+                 filtered_gear_focus_highestpip_general_innerear<-subset(filtered_gear_focus_general_innerear,Rank==1)#147 genes
 
 #(iv) Genes expressed in the inner and outer hair cells of the inner ear and has a drug-gene relationship with cisplatin
 
@@ -164,27 +172,15 @@ merged_focus_cyto<-merge(cred_0.05_final,cyto1,by.x="gene_name",by.y="gene_name"
 
 merged_gear_cyto<-inner_join(merged_gear_focus,merged_focus_cyto, by="gene_name") #143 genes
            merged_gear_cyto_innerandoutercells<-filter(merged_gear_cyto, cell_type=="Hair_Cells") #45 genes
-           merged_gear_cyto_general_innerear<-filter(merged_gear_cyto, cell_type !="Hair_Cells") #98 genes
 
 #Finding gene that has highest pip value (i.e. Rank=1) for z-score value
- 
-#General inner ear cells   
-  merged_gear_cyto_general_innerear<-merged_gear_cyto_general_innerear %>% group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip.x)))
-    merged_gear_cyto_general_innerear_highestpip<-subset(merged_gear_cyto_general_innerear,Rank==1)
-       merged_gear_cyto_general_innerear_highestpip<- distinct(merged_gear_cyto_general_innerear_highestpip, gene_name, .keep_all = TRUE) #98 genes
 
 #Inner and outer cells
     merged_gear_cyto_innerandoutercells<-merged_gear_cyto_innerandoutercells %>% group_by(gene_name) %>% mutate(Rank = dense_rank(desc(FOCUS_pip.x)))
        merged_gear_cyto_innerandoutercells_highestpip<-subset(merged_gear_cyto_innerandoutercells,Rank==1)
           merged_gear_cyto_innerandoutercells_highestpip<- distinct(merged_gear_cyto_innerandoutercells_highestpip, gene_name, .keep_all = TRUE) #45 genes
     
-#Making sure the cytotoxicity data is <0.05 in at least one tissue for both datasets
-#For the general inner ear dataset
-gear_focus_general_innerear_final<-merged_gear_cyto_general_innerear_highestpip %>%
-    filter_at(vars(p.value_breast,p.value_lung_SCLC,p.value_lung,p.value_lung_NSCLC,p.value_bone,p.value_aero_dig_tract,p.value_digestive_system,
-                   p.value_nervous_system,p.value_kidney,p.value_large_intestine,p.value_leukemia,p.value_lymphoma,p.value_myeloma,p.value_neuroblastoma,
-                   p.value_pancreas,p.value_skin,p.value_soft_tissue,p.value_thyroid,p.value_urogenital_system), any_vars(.<0.05)) #76 genes         
-                                                        
+#Making sure the cytotoxicity data is <0.05 in at least one tissue for both datasets                                                               
 #For the inner and outer ear cells/cytotoxicity correlation dataset
 gear_focus_innerandouterear_final<-merged_gear_cyto_innerandoutercells_highestpip %>% 
           filter_at(vars(p.value_breast,p.value_lung_SCLC,p.value_lung,p.value_lung_NSCLC,p.value_bone,p.value_aero_dig_tract,p.value_digestive_system,
@@ -309,5 +305,3 @@ ggplot(data=try, aes(gene_name, tissue, fill=zscore))+  geom_tile(aes(fill = zsc
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=20),axis.text.y = element_text(angle =0, vjust = 0.5, size=10), axis.text.x = element_text(angle=90, vjust=1,hjust=1,size=10, face="italic"),axis.title.x=element_text(size=20, face="bold"), axis.title.y=element_text(size=20,face="bold")) 
   
 ggsave("/home/projects/cisplatin/cio/metaxcan_results/heatplot.tiff", height=7, width=10, units='in', dpi=300)
-
-
