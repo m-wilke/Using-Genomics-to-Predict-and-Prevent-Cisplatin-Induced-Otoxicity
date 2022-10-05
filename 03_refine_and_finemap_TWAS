@@ -93,8 +93,8 @@ smultixcan_results<-read.table("/home/projects/cisplatin/cio/metaxcan_results/sm
 
 #Remove invalid gene names from focus results:
  n_occur<- data.frame(table(focus_results$mol_name))# how I found what genes were seen more than once 
-    focus_results_cred<-filter(focus_results, mol_name !="mol_name")
-    focus_results_cred<-filter(focus_results, mol_name !="NULL") #2,315 unique genes in FOCUS
+    focus_results<-filter(focus_results, mol_name !="mol_name")
+    focus_results_cred<-filter(focus_results, mol_name !="NULL") #2,314 unique genes in FOCUS
     
 #Seeing how many genes have P<0.05 in Smultixcan
 smultixcan_0.05<-filter(smultixcan_results, pvalue<=0.05) #2,491 genes
