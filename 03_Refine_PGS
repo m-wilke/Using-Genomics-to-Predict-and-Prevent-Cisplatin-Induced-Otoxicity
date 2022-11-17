@@ -120,9 +120,9 @@ gene_dataT_join <- inner_join(gene_dataT,observations, by = "observations")
 gene_data_expression_mean <- gene_dataT_join %>% group_by(ensemble_ID, cell_type, human_gene_name) %>% summarise(gene_expression = mean(gene_expression))
 
 #include only cells showing highest gene expression
-gene_data_expression_mean_max <- gene_data_expression_mean %>% 
-  group_by(ensemble_ID) %>% 
-  filter(gene_expression == max(gene_expression)) 
+#gene_data_expression_mean_max <- gene_data_expression_mean %>% 
+  #group_by(ensemble_ID) %>% 
+  #filter(gene_expression == max(gene_expression)) 
 
 #create a column which will have yes or no values: expressed in any inner ear cells, expressed in Mes, expressed in Pf4, (repeat for all the subtypes).
 lengthOfCells<- nrow(cells)
