@@ -51,7 +51,7 @@ clue_results_top5_nofilter$Compound_or_gene <- factor(clue_results_top5_nofilter
 p <- ggplot(clue_results_top5_nofilter, aes(Median_connectivity_score, Compound_or_gene))
 
 p1<-p + geom_point(aes(colour = Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12) + ggtitle("Top Drug Repurposing Results (no filter)")+ 
-  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, size-18,colour = p0)) +
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1,size=18, colour = p0), axis.text.x=element_text(size=18),axis.title.x = element_text(size = 18), axis.title.y=element_text(size=18)) +
   scale_shape_manual(values= c(19,18,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
   scale_size_manual(values=c(3,4,3))
 
@@ -63,7 +63,7 @@ clue_results_top5_innerandouterear$Compound_or_gene <- factor(clue_results_top5_
 b <- ggplot(clue_results_top5_innerandouterear, aes(Median_connectivity_score, Compound_or_gene))
 
 b1<-b + geom_point(aes(colour = Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12)+ ggtitle("Top Drug Repurposing Results (inner and outer hair cells in the inner ear)") +
-  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, size=18,colour = b0))+
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, size=18,colour = b0), axis.text.x=element_text(size=18),axis.title.x = element_text(size = 18), axis.title.y=element_text(size=18))+ 
   scale_shape_manual(values= c(19,15,18,1,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
   scale_size_manual(values=c(4,4,4,4,3)) 
   
@@ -75,7 +75,7 @@ clue_results_top5_general_innerear$Compound_or_gene <- factor(clue_results_top5_
 a <- ggplot(clue_results_top5_general_innerear, aes(Median_connectivity_score, Compound_or_gene))
 
 a1<-a + geom_point(aes(colour= Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12) + ggtitle ("Top Drug Repurposing Results (general inner ear cells)") + 
-  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, size=18,colour = a0)) +
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, size=18,colour = a0), axis.text.x=element_text(size=18),axis.title.x = element_text(size = 18), axis.title.y=element_text(size=18)) +
   scale_shape_manual(values= c(19,15,18,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
   scale_size_manual(values=c(3,3,4,3))
 
@@ -86,7 +86,7 @@ clue_results_top5_cytotoxicity_innerandouterear$Compound_or_gene <- factor(clue_
 d <- ggplot(clue_results_top5_cytotoxicity_innerandouterear, aes(Median_connectivity_score, Compound_or_gene))
 
 d1<-d + geom_point(aes(colour = Gene.Expression.Profile, shape=Perturbagen.type,size=Perturbagen.type)) + theme_cowplot(12)+ ggtitle("Top Drug Repurposing Results (Merged cisplatin cytotoxicity & inner/outer hair cells in the inner ear)") +
-  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=20,hjust = 0.5), axis.text.y = element_text(hjust = 1, size=18,colour = d0))+
+  xlab("Median Connectivity Score") +ylab ("Perturbagen") + xlim(-0.75,0.75) +theme(legend.position="none",plot.title = element_text(size=17,hjust = 0.5), axis.text.y = element_text(hjust = 1,size=18, colour = d0), axis.text.x=element_text(size=18),axis.title.x = element_text(size = 18), axis.title.y=element_text(size=18)) +  
   scale_shape_manual(values= c(19,8,18,17))+ scale_color_manual(values = c("Disimilar (potential otoprotectant)" = "blue", "Similar (potentially ototoxic)" = "red")) +
   scale_size_manual(values=c(3,3,4,3)) 
 
